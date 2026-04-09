@@ -12,6 +12,7 @@ export const appEnv = {
     process.env.AUTH_URL ??
     "",
   authSecret: process.env.AUTH_SECRET ?? "local-democratie2030-secret",
+  googleAuthEnabled: (process.env.AUTH_GOOGLE_ENABLED ?? "false") === "true",
   googleClientId: process.env.AUTH_GOOGLE_ID ?? "",
   googleClientSecret: process.env.AUTH_GOOGLE_SECRET ?? "",
   seedSecret: process.env.SEED_SECRET ?? "",
@@ -20,7 +21,8 @@ export const appEnv = {
 
 export function isGoogleAuthConfigured() {
   return Boolean(
-    appEnv.authSecret &&
+    appEnv.googleAuthEnabled &&
+      appEnv.authSecret &&
       appEnv.googleClientId &&
       appEnv.googleClientSecret,
   );

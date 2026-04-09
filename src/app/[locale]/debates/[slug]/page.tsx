@@ -6,7 +6,6 @@ import { authOptions } from "@/lib/auth";
 import { formatDateTime, formatNumber, formatPercent, getCopy, isLocale } from "@/lib/i18n";
 import { DEBATE_SLUG, type Locale } from "@/lib/types";
 import { getDebatePageData } from "@/lib/repository";
-import { isGoogleAuthConfigured } from "@/lib/env";
 import { VotePanel } from "@/components/vote-panel";
 import { CommentsSection } from "@/components/comments-section";
 import { ArgumentAccordion } from "@/components/argument-accordion";
@@ -28,7 +27,12 @@ export default async function DebatePage({
   const session = await getServerSession(authOptions);
   const data = await getDebatePageData(slug, session?.user?.id);
 
-  if (session?.user?.id && !data.viewer.hasAlias) {
+  if (
+    session?.user?.id &&
+    data.source === "firestore" &&
+    !data.viewer.hasAlias &&
+    !session.user.id.startsWith("guest_")
+  ) {
     redirect(`/${locale}/welcome?next=${encodeURIComponent(`/${locale}/debates/${slug}`)}`);
   }
 
@@ -41,23 +45,23 @@ export default async function DebatePage({
 
   return (
     <div className="grid gap-6">
-      <section className="panel overflow-hidden rounded-[2.5rem] p-8 lg:p-10">
+      <section className="panel overflow-hidden rounded-[2.75rem] p-8 lg:p-10">
         <div className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="space-y-5">
             <div className="flex flex-wrap items-center gap-3">
-              <span className="rounded-full bg-[var(--color-accent-soft)] px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-[var(--color-accent)]">
+              <span className="rounded-full bg-[var(--color-highlight-soft)] px-4 py-2 text-xs font-bold uppercase tracking-[0.22em] text-[var(--color-highlight-strong)]">
                 {dictionary.liveBadge}
               </span>
-              <span className="rounded-full bg-white/80 px-4 py-2 text-xs font-semibold text-[var(--color-muted)]">
+              <span className="rounded-full border border-[var(--color-border-strong)] bg-white/88 px-4 py-2 text-xs font-semibold text-[var(--color-muted-strong)]">
                 {data.source === "firestore"
                   ? dictionary.seededBy
                   : dictionary.fallbackBadge}
               </span>
             </div>
-            <p className="eyebrow text-xs font-bold text-[var(--color-muted)]">
+            <p className="eyebrow text-xs font-bold text-[var(--color-muted-strong)]">
               {dictionary.debateQuestionLabel}
             </p>
-            <h2 className="max-w-4xl text-balance text-4xl font-semibold leading-tight text-[var(--color-ink)] sm:text-5xl">
+            <h2 className="max-w-4xl text-balance text-4xl font-semibold leading-[0.98] text-[var(--color-ink)] sm:text-5xl">
               {data.debate.question[locale]}
             </h2>
             <p className="rich-copy max-w-3xl text-lg leading-9 text-[var(--color-ink)]/85">
@@ -65,21 +69,21 @@ export default async function DebatePage({
             </p>
             <Link
               href={`/${locale}`}
-              className="inline-flex rounded-full border border-[var(--color-border)] px-4 py-2 text-sm font-semibold text-[var(--color-ink)] transition hover:bg-white"
+              className="btn-secondary inline-flex items-center gap-2"
             >
               {dictionary.backToDebate}
             </Link>
           </div>
 
           <aside className="grid gap-5">
-            <div className="rounded-[2rem] bg-[var(--color-paper-strong)] p-6">
-              <p className="eyebrow text-xs font-bold text-[var(--color-muted)]">
+            <div className="rounded-[2rem] border border-[var(--color-border-strong)] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(241,245,249,0.94))] p-6 shadow-[0_24px_70px_rgba(15,23,42,0.10)]">
+              <p className="eyebrow text-xs font-bold text-[var(--color-muted-strong)]">
                 {dictionary.pulseTitle}
               </p>
               <h3 className="mt-3 text-2xl font-semibold text-[var(--color-ink)]">
                 {trendMessage}
               </h3>
-              <p className="mt-2 text-sm leading-7 text-[var(--color-muted)]">
+              <p className="mt-2 text-sm leading-7 text-[var(--color-muted-strong)]">
                 {dictionary.pulseSubtitle}
               </p>
               <div
@@ -87,7 +91,7 @@ export default async function DebatePage({
                 style={{ ["--yes-width" as string]: `${data.pulse.yesPercent}%` } as CSSProperties}
               />
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
-                <div className="rounded-[1.4rem] bg-[var(--color-yes-soft)] p-4">
+                <div className="rounded-[1.4rem] border border-[var(--color-border-strong)] bg-[var(--color-yes-soft)] p-4">
                   <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-yes)]">
                     Yes
                   </p>
@@ -98,7 +102,7 @@ export default async function DebatePage({
                     {formatNumber(locale, data.pulse.yesVotes)}
                   </p>
                 </div>
-                <div className="rounded-[1.4rem] bg-[var(--color-no-soft)] p-4">
+                <div className="rounded-[1.4rem] border border-[var(--color-border-strong)] bg-[var(--color-no-soft)] p-4">
                   <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-no)]">
                     No
                   </p>
@@ -111,24 +115,24 @@ export default async function DebatePage({
                 </div>
               </div>
               <div className="mt-5 grid grid-cols-3 gap-3">
-                <div className="rounded-[1.2rem] border border-[var(--color-border)] bg-white/80 p-3">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                <div className="rounded-[1.2rem] border border-[var(--color-border-strong)] bg-white/88 p-3">
+                  <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-muted-strong)]">
                     {dictionary.participants}
                   </p>
                   <p className="mt-2 text-2xl font-semibold text-[var(--color-ink)]">
                     {formatNumber(locale, data.pulse.voterCount)}
                   </p>
                 </div>
-                <div className="rounded-[1.2rem] border border-[var(--color-border)] bg-white/80 p-3">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                <div className="rounded-[1.2rem] border border-[var(--color-border-strong)] bg-white/88 p-3">
+                  <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-muted-strong)]">
                     {dictionary.comments}
                   </p>
                   <p className="mt-2 text-2xl font-semibold text-[var(--color-ink)]">
                     {formatNumber(locale, data.pulse.commentCount)}
                   </p>
                 </div>
-                <div className="rounded-[1.2rem] border border-[var(--color-border)] bg-white/80 p-3">
-                  <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-muted)]">
+                <div className="rounded-[1.2rem] border border-[var(--color-border-strong)] bg-white/88 p-3">
+                  <p className="text-xs uppercase tracking-[0.18em] text-[var(--color-muted-strong)]">
                     {dictionary.upvotes}
                   </p>
                   <p className="mt-2 text-2xl font-semibold text-[var(--color-ink)]">
@@ -141,7 +145,6 @@ export default async function DebatePage({
             <VotePanel
               locale={locale}
               debateId={slug}
-              authEnabled={isGoogleAuthConfigured()}
               isAuthenticated={Boolean(session?.user?.id)}
               hasAlias={data.viewer.hasAlias}
               currentVote={data.viewer.voteSide}
@@ -236,7 +239,6 @@ export default async function DebatePage({
         locale={locale}
         debateId={slug}
         comments={data.comments}
-        authEnabled={isGoogleAuthConfigured()}
         isAuthenticated={Boolean(session?.user?.id)}
         hasAlias={data.viewer.hasAlias}
       />

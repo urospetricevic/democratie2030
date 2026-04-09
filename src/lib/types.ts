@@ -5,6 +5,7 @@ export const DEBATE_SLUG = "quebec-country";
 export type Locale = (typeof SUPPORTED_LOCALES)[number];
 export type VoteSide = "yes" | "no";
 export type LocalizedText = Record<Locale, string>;
+export type AuthProvider = "guest" | "google";
 
 export interface ArgumentCard {
   id: string;
@@ -55,6 +56,7 @@ export interface UserProfile {
   email: string;
   alias: string;
   aliasNormalized: string;
+  authProvider: AuthProvider;
   createdAt: string;
   updatedAt: string;
 }

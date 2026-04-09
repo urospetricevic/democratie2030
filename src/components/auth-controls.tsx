@@ -1,7 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useTransition } from "react";
-import { signIn, signOut } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import { type Locale } from "@/lib/types";
@@ -10,7 +11,7 @@ import { getCopy } from "@/lib/i18n";
 interface AuthControlsProps {
   locale: Locale;
   isAuthenticated: boolean;
-  authEnabled: boolean;
+  googleEnabled: boolean;
   alias: string | null;
   compact?: boolean;
 }
@@ -18,21 +19,13 @@ interface AuthControlsProps {
 export function AuthControls({
   locale,
   isAuthenticated,
-  authEnabled,
+  googleEnabled,
   alias,
   compact = false,
 }: AuthControlsProps) {
   const dictionary = getCopy(locale);
   const pathname = usePathname() || `/${locale}`;
   const [pending, startTransition] = useTransition();
-
-  if (!authEnabled) {
-    return (
-      <p className="max-w-xs text-sm text-[var(--color-muted)]">
-        {dictionary.authUnavailable}
-      </p>
-    );
-  }
 
   return (
     <div
@@ -43,7 +36,7 @@ export function AuthControls({
     >
       {isAuthenticated ? (
         <>
-          <span className="rounded-full bg-white/70 px-3 py-1 text-sm font-medium text-[var(--color-ink)]">
+          <span className="inline-flex items-center rounded-full border border-[var(--color-border-strong)] bg-[var(--color-ink)] px-4 py-2 text-sm font-semibold text-white shadow-[0_16px_40px_rgba(15,23,42,0.22)]">
             {alias ?? "citizen"}
           </span>
           <button
@@ -53,27 +46,26 @@ export function AuthControls({
                 await signOut({ callbackUrl: `/${locale}` });
               })
             }
-            className="rounded-full border border-[var(--color-border)] px-4 py-2 text-sm font-semibold text-[var(--color-ink)] transition hover:bg-white"
+            className="btn-secondary"
             disabled={pending}
           >
             {dictionary.signOut}
           </button>
         </>
       ) : (
-        <button
-          type="button"
-          onClick={() =>
-            startTransition(async () => {
-              await signIn("google", {
-                callbackUrl: pathname,
-              });
-            })
-          }
-          className="rounded-full bg-[var(--color-ink)] px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
-          disabled={pending}
-        >
-          {dictionary.signIn}
-        </button>
+        <div className="flex flex-col items-end gap-2">
+          <Link
+            href={`/${locale}/access?next=${encodeURIComponent(pathname)}`}
+            className="btn-solid"
+          >
+            {dictionary.signIn}
+          </Link>
+          <span className="text-xs font-medium text-[var(--color-muted-strong)]">
+            {googleEnabled
+              ? `${dictionary.accessGuestTitle} + Google ${dictionary.accessOptional.toLowerCase()}`
+              : dictionary.accessGuestTitle}
+          </span>
+        </div>
       )}
     </div>
   );

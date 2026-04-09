@@ -22,16 +22,16 @@ export function LanguageSwitcher({ locale }: LanguageSwitcherProps) {
   const pathname = usePathname() || `/${locale}`;
 
   return (
-    <div className="inline-flex rounded-full border border-[var(--color-border)] bg-white/60 p-1">
+    <div className="inline-flex rounded-full border border-[var(--color-border-strong)] bg-white/78 p-1 shadow-[0_14px_32px_rgba(15,23,42,0.05)]">
       {SUPPORTED_LOCALES.map((option) => (
         <Link
           key={option}
           href={buildHref(pathname, option)}
           className={clsx(
-            "rounded-full px-3 py-1 text-sm font-semibold transition",
+            "rounded-full px-4 py-2 text-sm font-bold transition",
             option === locale
-              ? "bg-[var(--color-ink)] text-white"
-              : "text-[var(--color-muted)] hover:text-[var(--color-ink)]",
+              ? "bg-[var(--color-ink)] text-white shadow-[0_12px_32px_rgba(15,23,42,0.18)]"
+              : "text-[var(--color-muted-strong)] hover:text-[var(--color-ink)]",
           )}
         >
           {option.toUpperCase()}

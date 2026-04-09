@@ -52,8 +52,8 @@ export default async function LocaleLayout({
               <AuthControls
                 locale={locale}
                 isAuthenticated={Boolean(session?.user?.id)}
-                authEnabled={isGoogleAuthConfigured()}
-                alias={profile?.alias ?? null}
+                googleEnabled={isGoogleAuthConfigured()}
+                alias={profile?.alias ?? session?.user?.name ?? null}
               />
             </div>
           </div>

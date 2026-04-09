@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { signIn } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import clsx from "clsx";
 import { formatDateTime, getCopy } from "@/lib/i18n";
@@ -11,7 +10,6 @@ interface CommentsSectionProps {
   locale: Locale;
   debateId: string;
   comments: CommentRecord[];
-  authEnabled: boolean;
   isAuthenticated: boolean;
   hasAlias: boolean;
 }
@@ -20,7 +18,6 @@ export function CommentsSection({
   locale,
   debateId,
   comments,
-  authEnabled,
   isAuthenticated,
   hasAlias,
 }: CommentsSectionProps) {
@@ -32,12 +29,8 @@ export function CommentsSection({
   const [pending, startTransition] = useTransition();
 
   async function requireAuthOrAlias() {
-    if (!authEnabled) {
-      setMessage(dictionary.authUnavailable);
-      return false;
-    }
     if (!isAuthenticated) {
-      await signIn("google", { callbackUrl: pathname });
+      router.push(`/${locale}/access?next=${encodeURIComponent(pathname)}`);
       return false;
     }
     if (!hasAlias) {
@@ -131,7 +124,7 @@ export function CommentsSection({
               type="button"
               onClick={() => void publishComment()}
               disabled={pending}
-              className="rounded-full bg-[var(--color-ink)] px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
+              className="btn-solid"
             >
               {dictionary.publishComment}
             </button>
@@ -167,8 +160,8 @@ export function CommentsSection({
                     onClick={() => void upvote(comment.id)}
                     disabled={pending}
                     className={clsx(
-                      "rounded-full border border-[var(--color-border)] px-4 py-2 text-sm font-semibold transition",
-                      "hover:bg-[var(--color-accent-soft)] hover:text-[var(--color-accent)]",
+                      "rounded-full border border-[var(--color-border-strong)] bg-[var(--color-paper-strong)] px-4 py-2 text-sm font-semibold text-[var(--color-ink)] transition",
+                      "hover:border-[var(--color-highlight)] hover:bg-[var(--color-highlight-soft)] hover:text-[var(--color-ink)]",
                     )}
                   >
                     {dictionary.upvote} · {comment.upvoteCount}

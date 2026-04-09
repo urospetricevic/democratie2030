@@ -4,9 +4,10 @@ import { clampCommentBody, computeSocietalPulse, computeVoteTotals, isAliasValid
 import { isFirestoreConfigured } from "@/lib/env";
 import { getFirestore } from "@/lib/firestore";
 import { generateDebateSeed } from "@/lib/seed";
-import { DEBATE_SLUG, type CommentRecord, type Debate, type DebateAggregate, type DebatePageData, type UserProfile, type ViewerState, type VoteRecord, type VoteSide } from "@/lib/types";
+import { DEBATE_SLUG, type AuthProvider, type CommentRecord, type Debate, type DebateAggregate, type DebatePageData, type UserProfile, type ViewerState, type VoteRecord, type VoteSide } from "@/lib/types";
 
 const FALLBACK_DEBATE = structuredClone(fallbackDebate) as Debate;
+const GUEST_ID_PATTERN = /^[a-z0-9-]{12,128}$/;
 
 function debatesCollection() {
   return getFirestore().collection("debates");
@@ -197,7 +198,12 @@ export async function getUserProfile(userId: string) {
   return snapshot.exists ? (snapshot.data() as UserProfile) : null;
 }
 
-export async function setUserAlias(userId: string, email: string, rawAlias: string) {
+export async function setUserAlias(
+  userId: string,
+  email: string,
+  rawAlias: string,
+  authProvider: AuthProvider = "google",
+) {
   const aliasNormalized = normalizeAlias(rawAlias);
   if (!isAliasValid(aliasNormalized)) {
     throw new Error("INVALID_ALIAS");
@@ -232,6 +238,7 @@ export async function setUserAlias(userId: string, email: string, rawAlias: stri
       email,
       alias: aliasNormalized,
       aliasNormalized,
+      authProvider,
       createdAt: existingProfile?.createdAt ?? now,
       updatedAt: now,
     };
@@ -250,6 +257,42 @@ export async function setUserAlias(userId: string, email: string, rawAlias: stri
 
     return profile;
   });
+}
+
+function sanitizeGuestId(rawGuestId: string) {
+  return rawGuestId
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "");
+}
+
+export async function registerGuestIdentity(rawGuestId: string, rawAlias: string) {
+  const guestId = sanitizeGuestId(rawGuestId);
+  if (!GUEST_ID_PATTERN.test(guestId)) {
+    throw new Error("INVALID_GUEST_ID");
+  }
+
+  const userId = `guest_${guestId}`;
+  const email = `${guestId}@guest.democratie2030.local`;
+
+  if (!isFirestoreConfigured()) {
+    const aliasNormalized = normalizeAlias(rawAlias);
+    if (!isAliasValid(aliasNormalized)) {
+      throw new Error("INVALID_ALIAS");
+    }
+
+    return {
+      userId,
+      email,
+      alias: aliasNormalized,
+      aliasNormalized,
+      authProvider: "guest" as const,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+  }
+
+  return setUserAlias(userId, email, rawAlias, "guest");
 }
 
 export async function submitVote(userId: string, debateId: string, side: VoteSide) {

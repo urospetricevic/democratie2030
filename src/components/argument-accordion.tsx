@@ -16,7 +16,7 @@ export function ArgumentAccordion({
 
   return (
     <details
-      className="group rounded-[1.75rem] border border-[var(--color-border)] bg-white/80 p-5 transition open:bg-white"
+      className="group rounded-[1.75rem] border border-[var(--color-border-strong)] bg-white/88 p-5 transition duration-200 open:bg-white hover:border-[var(--color-highlight)]"
       open={false}
     >
       <summary className="cursor-pointer list-none">
@@ -37,11 +37,11 @@ export function ArgumentAccordion({
             <h3 className="text-xl font-semibold leading-tight text-[var(--color-ink)]">
               {argument.title[locale]}
             </h3>
-            <p className="text-sm leading-7 text-[var(--color-muted)]">
+            <p className="text-sm leading-7 text-[var(--color-muted-strong)]">
               {argument.summary[locale]}
             </p>
           </div>
-          <span className="pt-1 text-sm font-semibold text-[var(--color-accent)]">
+          <span className="pt-1 text-sm font-semibold text-[var(--color-highlight-strong)]">
             {dictionary.details}
           </span>
         </div>

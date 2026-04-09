@@ -15,7 +15,7 @@ const copy = {
     homeTitle: "Debattre ensemble. Voter clairement. Voir la tendance generale.",
     homeIntro:
       "Une premiere plateforme pour structurer un grand debat public, faire ressortir les arguments les plus convaincants, puis afficher la position collective du moment.",
-    homePrimaryCta: "Entrer dans le debat",
+    homePrimaryCta: "Ouvrir le debat",
     homeSecondaryCta: "Voir le barometre social",
     pulseTitle: "Position de la societe",
     pulseSubtitle:
@@ -24,11 +24,28 @@ const copy = {
     voteYes: "Je penche vers le Oui",
     voteNo: "Je penche vers le Non",
     currentVote: "Votre position actuelle",
-    authPrompt: "Connectez-vous avec Google pour voter, commenter et soutenir des contributions.",
+    authPrompt:
+      "Accedez au debat avec un alias citoyen ou un fournisseur externe pour voter, commenter et soutenir les contributions.",
     authUnavailable:
-      "La connexion Google n'est pas encore configuree sur cet environnement.",
-    signIn: "Se connecter avec Google",
+      "La participation n'est pas disponible sur cet environnement.",
+    signIn: "Acceder pour participer",
     signOut: "Se deconnecter",
+    accessTitle: "Entrez dans le debat",
+    accessIntro:
+      "Choisissez un acces rapide pour participer. Le mode citoyen est lie a ce navigateur et suffit pour ce prototype.",
+    accessGuestTitle: "Mode citoyen",
+    accessGuestBody:
+      "Choisissez votre alias public et participez sans passer par un fournisseur externe.",
+    accessGuestButton: "Continuer avec mon alias",
+    accessGuestHint:
+      "Votre voix reste associee a ce navigateur. Vous pourrez voter, commenter et soutenir les arguments en quelques secondes.",
+    accessGoogleTitle: "Google en option",
+    accessGoogleBody:
+      "Si vous preferez un fournisseur externe, l'entree Google peut etre reactivee plus tard sans changer le reste du produit.",
+    accessGoogleButton: "Continuer avec Google",
+    accessOptional: "Optionnel",
+    accessRecommended: "Recommande",
+    accessBack: "Retour a l'accueil",
     debateQuestionLabel: "Question ouverte",
     debateArgumentsLabel: "Arguments initiaux",
     commentsTitle: "Commentaires publics",
@@ -47,7 +64,7 @@ const copy = {
     details: "Lire les details",
     aliasTitle: "Choisissez votre nom public",
     aliasIntro:
-      "Votre compte Google sert a securiser l'acces. Votre pseudo est le seul nom visible publiquement dans le debat.",
+      "Votre mode d'acces securise votre participation. Votre pseudo est le seul nom visible publiquement dans le debat.",
     aliasPlaceholder: "Votre pseudo public",
     aliasSubmit: "Valider mon pseudo",
     aliasHelp:
@@ -76,7 +93,7 @@ const copy = {
     homeTitle: "Debate together. Vote clearly. See society's direction.",
     homeIntro:
       "A first platform for structuring a major public debate, surfacing the strongest arguments, and displaying the collective position of the moment.",
-    homePrimaryCta: "Enter the debate",
+    homePrimaryCta: "Open the debate",
     homeSecondaryCta: "See the societal pulse",
     pulseTitle: "Societal pulse",
     pulseSubtitle:
@@ -86,11 +103,27 @@ const copy = {
     voteNo: "I lean No",
     currentVote: "Your current position",
     authPrompt:
-      "Sign in with Google to vote, comment, and support contributions.",
+      "Use a civic alias or an external provider to vote, comment, and support contributions.",
     authUnavailable:
-      "Google sign-in is not configured in this environment yet.",
-    signIn: "Sign in with Google",
+      "Participation is not available in this environment.",
+    signIn: "Access the debate",
     signOut: "Sign out",
+    accessTitle: "Enter the debate",
+    accessIntro:
+      "Pick a fast access mode to participate. Civic mode is tied to this browser and is enough for this prototype.",
+    accessGuestTitle: "Civic mode",
+    accessGuestBody:
+      "Choose your public alias and participate without relying on an external provider.",
+    accessGuestButton: "Continue with my alias",
+    accessGuestHint:
+      "Your voice stays tied to this browser. You will be able to vote, comment, and support arguments in seconds.",
+    accessGoogleTitle: "Google optional",
+    accessGoogleBody:
+      "If you prefer an external provider, Google entry can be re-enabled later without changing the rest of the product.",
+    accessGoogleButton: "Continue with Google",
+    accessOptional: "Optional",
+    accessRecommended: "Recommended",
+    accessBack: "Back to home",
     debateQuestionLabel: "Open question",
     debateArgumentsLabel: "Initial arguments",
     commentsTitle: "Public comments",
@@ -109,7 +142,7 @@ const copy = {
     details: "Read details",
     aliasTitle: "Choose your public name",
     aliasIntro:
-      "Your Google account secures access. Your alias is the only public name shown in the debate.",
+      "Your access mode secures participation. Your alias is the only public name shown in the debate.",
     aliasPlaceholder: "Your public alias",
     aliasSubmit: "Save my alias",
     aliasHelp:

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { signIn } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import clsx from "clsx";
 import { getCopy } from "@/lib/i18n";
@@ -10,7 +9,6 @@ import type { Locale, VoteSide } from "@/lib/types";
 interface VotePanelProps {
   locale: Locale;
   debateId: string;
-  authEnabled: boolean;
   isAuthenticated: boolean;
   hasAlias: boolean;
   currentVote: VoteSide | null;
@@ -19,7 +17,6 @@ interface VotePanelProps {
 export function VotePanel({
   locale,
   debateId,
-  authEnabled,
   isAuthenticated,
   hasAlias,
   currentVote,
@@ -33,13 +30,8 @@ export function VotePanel({
   async function handleVote(side: VoteSide) {
     setMessage(null);
 
-    if (!authEnabled) {
-      setMessage(dictionary.authUnavailable);
-      return;
-    }
-
     if (!isAuthenticated) {
-      await signIn("google", { callbackUrl: pathname });
+      router.push(`/${locale}/access?next=${encodeURIComponent(pathname)}`);
       return;
     }
 
@@ -81,9 +73,7 @@ export function VotePanel({
         <p className="text-sm leading-7 text-[var(--color-muted)]">
           {isAuthenticated && hasAlias
             ? dictionary.participationLine
-            : authEnabled
-              ? dictionary.authPrompt
-              : dictionary.authUnavailable}
+            : dictionary.authPrompt}
         </p>
       </div>
 
@@ -98,10 +88,10 @@ export function VotePanel({
               onClick={() => void handleVote(side)}
               disabled={pending}
               className={clsx(
-                "rounded-[1.4rem] border px-4 py-4 text-left transition",
+                "rounded-[1.6rem] border px-4 py-4 text-left transition duration-200",
                 active
-                  ? "border-transparent text-white shadow-lg"
-                  : "border-[var(--color-border)] bg-white hover:bg-[var(--color-paper-strong)]",
+                  ? "border-transparent text-white shadow-[0_18px_45px_rgba(15,23,42,0.22)]"
+                  : "border-[var(--color-border-strong)] bg-[var(--color-paper-strong)] hover:-translate-y-0.5 hover:border-[var(--color-highlight)] hover:bg-white",
               )}
               style={
                 active
@@ -113,8 +103,8 @@ export function VotePanel({
                   : undefined
               }
             >
-              <span className="block text-xs font-bold uppercase tracking-[0.22em] opacity-80">
-                {dictionary.currentVote}
+              <span className="block text-xs font-bold uppercase tracking-[0.22em] opacity-90">
+                {active ? dictionary.currentVote : dictionary.voteLabel}
               </span>
               <span className="mt-1 block text-base font-semibold">
                 {isYes ? dictionary.voteYes : dictionary.voteNo}

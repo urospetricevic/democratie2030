@@ -9,12 +9,13 @@ npm install
 npm run dev
 ```
 
-Without Firestore or Google OAuth credentials, the UI falls back to a bundled debate seed in read-only mode.
+Without Firestore, the UI falls back to a bundled debate seed in read-only mode.
+The participation flow supports a browser-bound civic alias by default. Google auth is optional and only enabled when `AUTH_GOOGLE_ENABLED=true`.
 
 ## Deploy
 
 1. Build and deploy the container to Cloud Run.
-2. Configure `NEXTAUTH_URL`, `APP_URL`, `AUTH_SECRET`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`, and `SEED_SECRET`.
+2. Configure `NEXTAUTH_URL`, `APP_URL`, `AUTH_SECRET`, `SEED_SECRET`, and optionally `AUTH_GOOGLE_ENABLED`, `AUTH_GOOGLE_ID`, `AUTH_GOOGLE_SECRET`.
 3. Trigger the seed endpoint once the service is live.
 
 ## Test
