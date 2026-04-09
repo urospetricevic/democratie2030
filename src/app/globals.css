@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+:root {
+  --color-canvas: #f5efe3;
+  --color-paper: rgba(255, 250, 242, 0.9);
+  --color-paper-strong: #fffdf9;
+  --color-ink: #1d2939;
+  --color-muted: #667085;
+  --color-border: rgba(29, 41, 57, 0.12);
+  --color-accent: #0f766e;
+  --color-accent-soft: rgba(15, 118, 110, 0.12);
+  --color-yes: #124f39;
+  --color-yes-soft: rgba(18, 79, 57, 0.12);
+  --color-no: #8f2430;
+  --color-no-soft: rgba(143, 36, 48, 0.12);
+  --color-gold: #b7791f;
+  --shadow-panel: 0 18px 50px rgba(69, 41, 9, 0.08);
+}
+
+@theme inline {
+  --color-background: var(--color-canvas);
+  --color-foreground: var(--color-ink);
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(183, 121, 31, 0.18), transparent 28%),
+    radial-gradient(circle at top right, rgba(15, 118, 110, 0.18), transparent 30%),
+    linear-gradient(180deg, #f7f1e7 0%, #f4ecdf 46%, #efe6d8 100%);
+  color: var(--color-ink);
+  font-family: var(--font-sans), sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(15, 118, 110, 0.18);
+}
+
+.site-frame {
+  position: relative;
+}
+
+.site-frame::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(29, 41, 57, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(29, 41, 57, 0.04) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: radial-gradient(circle at center, black 36%, transparent 88%);
+}
+
+.panel {
+  background: var(--color-paper);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-panel);
+  backdrop-filter: blur(16px);
+}
+
+.rich-copy {
+  font-family: var(--font-serif), serif;
+}
+
+.eyebrow {
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.pulse-bar {
+  background:
+    linear-gradient(90deg, var(--color-yes) 0 var(--yes-width), var(--color-no) var(--yes-width) 100%);
+}
+
+.text-balance {
+  text-wrap: balance;
+}

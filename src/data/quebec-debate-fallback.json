@@ -1,0 +1,124 @@
+{
+  "id": "quebec-country",
+  "slug": "quebec-country",
+  "status": "live",
+  "seedSource": "fallback",
+  "title": {
+    "fr": "Le Quebec devrait-il devenir un pays ?",
+    "en": "Should Quebec become a country?"
+  },
+  "question": {
+    "fr": "Le Quebec devrait-il devenir un pays souverain ?",
+    "en": "Should Quebec become a sovereign country?"
+  },
+  "intro": {
+    "fr": "Ce premier debat pose une question structurante pour l'avenir politique, culturel et economique du Quebec. La plateforme expose les deux camps, puis laisse la societe exprimer une tendance collective.",
+    "en": "This first debate explores a foundational question for Quebec's political, cultural, and economic future. The platform lays out both sides, then lets society reveal its collective direction."
+  },
+  "yesLabel": {
+    "fr": "Oui, le Quebec devrait devenir un pays",
+    "en": "Yes, Quebec should become a country"
+  },
+  "noLabel": {
+    "fr": "Non, le Quebec devrait rester au Canada",
+    "en": "No, Quebec should remain in Canada"
+  },
+  "yesArguments": [
+    {
+      "id": "yes-democratic-self-rule",
+      "title": {
+        "fr": "Une souverainete pour aligner les decisions avec la volonte du Quebec",
+        "en": "Sovereignty would align decisions with Quebec's own democratic will"
+      },
+      "summary": {
+        "fr": "Les partisans soutiennent qu'un pays quebecois permettrait de controler entierement les grandes decisions politiques.",
+        "en": "Supporters argue that an independent Quebec would fully control major political decisions."
+      },
+      "details": {
+        "fr": "Dans cette perspective, le Quebec pourrait definir seul ses lois constitutionnelles, ses traites internationaux, sa fiscalite complete et ses priorites collectives. Les defenseurs de cette option estiment qu'un peuple qui forme deja une communaute politique distincte devrait pouvoir disposer d'institutions pleinement souveraines et etre juge directement sur ses choix.",
+        "en": "From this perspective, Quebec could set its own constitutional rules, international treaties, full tax policy, and long-term priorities. Advocates argue that a people already functioning as a distinct political community should be able to act through fully sovereign institutions and be judged directly on its own choices."
+      }
+    },
+    {
+      "id": "yes-language-culture",
+      "title": {
+        "fr": "L'independance serait un outil de protection linguistique et culturelle",
+        "en": "Independence could become a stronger tool for protecting language and culture"
+      },
+      "summary": {
+        "fr": "Le camp du Oui voit la souverainete comme une garantie plus forte pour la francophonie et la culture quebecoise.",
+        "en": "The Yes camp sees sovereignty as a stronger guarantee for Quebec's francophone identity and culture."
+      },
+      "details": {
+        "fr": "Les partisans estiment qu'un Etat quebecois aurait plus de latitude pour proteger le francais, financer sa creation culturelle, definir ses politiques d'immigration et transmettre une identite commune sans compromis federaux. Ils soutiennent qu'une nation minoritaire en Amerique du Nord dispose de meilleurs reflexes de preservation quand elle controle tous les leviers de l'Etat.",
+        "en": "Supporters believe a Quebec state would have greater room to protect French, fund cultural creation, shape immigration policy, and transmit a shared civic identity without federal compromise. They argue that a minority nation in North America is better protected when it controls every lever of state power."
+      }
+    },
+    {
+      "id": "yes-economic-choice",
+      "title": {
+        "fr": "Un pays permettrait de choisir un modele economique plus coherent",
+        "en": "A country could pursue a more coherent economic model"
+      },
+      "summary": {
+        "fr": "Selon cette lecture, le Quebec pourrait mieux orienter son developpement s'il maitrisait toute sa politique economique.",
+        "en": "Under this view, Quebec could shape development more clearly if it controlled its entire economic policy."
+      },
+      "details": {
+        "fr": "Les partisans avancent qu'un Quebec souverain pourrait mieux arrimer fiscalite, energie, commerce, innovation et investissements publics. Ils considerent que l'economie quebecoise possede deja assez de taille, de competences et d'institutions pour negocier ses priorites elle-meme, meme si une transition demanderait des ajustements et une negociation exigeante avec le Canada.",
+        "en": "Supporters say a sovereign Quebec could better align taxation, energy, trade, innovation, and public investment. They believe Quebec's economy already has the scale, expertise, and institutions needed to negotiate its own priorities, even if the transition would require difficult adjustments and talks with Canada."
+      }
+    }
+  ],
+  "noArguments": [
+    {
+      "id": "no-economic-stability",
+      "title": {
+        "fr": "Rester au Canada reduit les chocs economiques et l'incertitude",
+        "en": "Remaining in Canada reduces economic shocks and uncertainty"
+      },
+      "summary": {
+        "fr": "Le camp du Non souligne les risques de transition, de dette, de monnaie et de confiance des investisseurs.",
+        "en": "The No camp stresses transition risks involving debt, currency, and investor confidence."
+      },
+      "details": {
+        "fr": "Selon cette position, la separation ouvrirait une longue periode d'incertitude sur les frontieres economiques, la monnaie, la dette publique, les pensions, les transferts et les accords commerciaux. Les opposants jugent que ces inconnues pourraient freiner l'investissement, fragiliser les finances publiques et peser sur les menages, alors que le cadre canadien apporte deja stabilite et acces a un large marche integre.",
+        "en": "Under this position, separation would trigger a long period of uncertainty over economic borders, currency, public debt, pensions, transfers, and trade agreements. Opponents argue that these unknowns could slow investment, strain public finances, and affect households, while the Canadian framework already provides stability and access to a large integrated market."
+      }
+    },
+    {
+      "id": "no-shared-federal-weight",
+      "title": {
+        "fr": "Le federalisme permet de combiner identite quebecoise et influence plus large",
+        "en": "Federalism combines Quebec identity with broader influence"
+      },
+      "summary": {
+        "fr": "Pour le camp du Non, le Quebec peut proteger sa specificite tout en gardant un poids dans un ensemble plus vaste.",
+        "en": "For the No side, Quebec can protect its distinctiveness while retaining influence within a larger whole."
+      },
+      "details": {
+        "fr": "Les opposants a la souverainete soutiennent que le Quebec dispose deja d'institutions fortes, d'un gouvernement national, d'une culture politique distincte et d'espaces de negociation au sein du Canada. Ils estiment qu'il est possible de defendre le francais, les politiques sociales et l'autonomie quebecoise sans rompre des solidarites federales utiles en diplomatie, en defense et en redistribution.",
+        "en": "Opponents of sovereignty argue that Quebec already has strong institutions, a national government, a distinct political culture, and meaningful bargaining power inside Canada. They believe French, social policy, and Quebec autonomy can be defended without giving up federal solidarity in diplomacy, defense, and redistribution."
+      }
+    },
+    {
+      "id": "no-social-cohesion",
+      "title": {
+        "fr": "La separation risquerait d'accentuer les fractures sociales et territoriales",
+        "en": "Separation could deepen social and territorial fractures"
+      },
+      "summary": {
+        "fr": "Le camp du Non craint qu'un processus de rupture durcisse les tensions internes plutot que de les resoudre.",
+        "en": "The No camp fears that a breakaway process could harden internal tensions rather than resolve them."
+      },
+      "details": {
+        "fr": "Cette lecture souligne que la question souverainiste traverse les familles, les generations, les regions, les langues et les milieux economiques. Les opposants redoutent qu'une bataille de rupture laisse des blessures durables, complique la place des minorites et polarise la vie publique pendant des annees. Pour eux, une reforme du federalisme est moins destabilisant qu'une secession complete.",
+        "en": "This view emphasizes that the sovereignty question cuts across families, generations, regions, languages, and economic sectors. Opponents worry that a separation struggle would leave lasting scars, complicate the place of minorities, and polarize public life for years. In their view, reforming federalism is less destabilizing than full secession."
+      }
+    }
+  ],
+  "yesCount": 0,
+  "noCount": 0,
+  "createdAt": "2026-04-08T00:00:00.000Z",
+  "updatedAt": "2026-04-08T00:00:00.000Z"
+}

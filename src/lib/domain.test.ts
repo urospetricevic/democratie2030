@@ -1,0 +1,133 @@
+import { describe, expect, it } from "vitest";
+import {
+  clampCommentBody,
+  computeSocietalPulse,
+  computeVoteTotals,
+  normalizeAlias,
+  sortCommentsBySupport,
+} from "./domain";
+import type { CommentRecord } from "./types";
+
+describe("normalizeAlias", () => {
+  it("normalizes accents, spacing, and casing", () => {
+    expect(normalizeAlias(" Électeur Libre ")).toBe("electeur-libre");
+  });
+
+  it("keeps supported characters", () => {
+    expect(normalizeAlias("citizen_2030")).toBe("citizen_2030");
+  });
+});
+
+describe("computeVoteTotals", () => {
+  it("counts a first vote", () => {
+    expect(
+      computeVoteTotals(
+        { yesVotes: 0, noVotes: 0, voterCount: 0 },
+        null,
+        "yes",
+      ),
+    ).toEqual({
+      yesVotes: 1,
+      noVotes: 0,
+      voterCount: 1,
+    });
+  });
+
+  it("switches a vote from yes to no", () => {
+    expect(
+      computeVoteTotals(
+        { yesVotes: 10, noVotes: 5, voterCount: 15 },
+        "yes",
+        "no",
+      ),
+    ).toEqual({
+      yesVotes: 9,
+      noVotes: 6,
+      voterCount: 15,
+    });
+  });
+});
+
+describe("computeSocietalPulse", () => {
+  it("computes balanced percentages when nobody voted", () => {
+    expect(
+      computeSocietalPulse({
+        debateId: "quebec-country",
+        yesVotes: 0,
+        noVotes: 0,
+        voterCount: 0,
+        commentCount: 0,
+        upvoteCount: 0,
+        topCommentIds: [],
+        updatedAt: "2026-04-08T00:00:00.000Z",
+      }),
+    ).toMatchObject({
+      totalVotes: 0,
+      yesPercent: 50,
+      noPercent: 50,
+      leadingSide: "tie",
+    });
+  });
+
+  it("detects the leading side", () => {
+    expect(
+      computeSocietalPulse({
+        debateId: "quebec-country",
+        yesVotes: 64,
+        noVotes: 36,
+        voterCount: 100,
+        commentCount: 4,
+        upvoteCount: 7,
+        topCommentIds: [],
+        updatedAt: "2026-04-08T00:00:00.000Z",
+      }).leadingSide,
+    ).toBe("yes");
+  });
+});
+
+describe("sortCommentsBySupport", () => {
+  it("sorts first by support and then by recency", () => {
+    const comments: CommentRecord[] = [
+      {
+        id: "one",
+        debateId: "quebec-country",
+        authorId: "1",
+        alias: "alpha",
+        body: "One",
+        upvoteCount: 2,
+        createdAt: "2026-04-08T10:00:00.000Z",
+        updatedAt: "2026-04-08T10:00:00.000Z",
+      },
+      {
+        id: "two",
+        debateId: "quebec-country",
+        authorId: "2",
+        alias: "beta",
+        body: "Two",
+        upvoteCount: 5,
+        createdAt: "2026-04-08T08:00:00.000Z",
+        updatedAt: "2026-04-08T08:00:00.000Z",
+      },
+      {
+        id: "three",
+        debateId: "quebec-country",
+        authorId: "3",
+        alias: "gamma",
+        body: "Three",
+        upvoteCount: 5,
+        createdAt: "2026-04-08T12:00:00.000Z",
+        updatedAt: "2026-04-08T12:00:00.000Z",
+      },
+    ];
+
+    expect(sortCommentsBySupport(comments).map((comment) => comment.id)).toEqual(
+      ["three", "two", "one"],
+    );
+  });
+});
+
+describe("clampCommentBody", () => {
+  it("trims and collapses whitespace", () => {
+    expect(clampCommentBody("  un   texte   propre  ")).toBe("un texte propre");
+  });
+});
