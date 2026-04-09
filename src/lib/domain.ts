@@ -6,6 +6,11 @@ import type {
 } from "@/lib/types";
 
 const ALIAS_PATTERN = /^[a-z0-9_-]{3,24}$/;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PASSWORD_PATTERN = /^(?=.*[A-Za-z])(?=.*\d).{8,72}$/;
+
+export const MIN_PASSWORD_LENGTH = 8;
+export const MAX_PASSWORD_LENGTH = 72;
 
 export function normalizeAlias(input: string) {
   return input
@@ -20,6 +25,18 @@ export function normalizeAlias(input: string) {
 
 export function isAliasValid(input: string) {
   return ALIAS_PATTERN.test(input);
+}
+
+export function normalizeEmail(input: string) {
+  return input.trim().toLowerCase();
+}
+
+export function isEmailValid(input: string) {
+  return EMAIL_PATTERN.test(input);
+}
+
+export function isPasswordValid(input: string) {
+  return PASSWORD_PATTERN.test(input);
 }
 
 export function clampCommentBody(input: string) {

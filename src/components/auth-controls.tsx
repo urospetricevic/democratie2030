@@ -62,8 +62,8 @@ export function AuthControls({
           </Link>
           <span className="text-xs font-medium text-[var(--color-muted-strong)]">
             {googleEnabled
-              ? `${dictionary.accessGuestTitle} + Google ${dictionary.accessOptional.toLowerCase()}`
-              : dictionary.accessGuestTitle}
+              ? `${dictionary.accessAccountHint} Google ${dictionary.accessOptional.toLowerCase()}.`
+              : dictionary.accessAccountHint}
           </span>
         </div>
       )}

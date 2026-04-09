@@ -3,7 +3,10 @@ import {
   clampCommentBody,
   computeSocietalPulse,
   computeVoteTotals,
+  isEmailValid,
+  isPasswordValid,
   normalizeAlias,
+  normalizeEmail,
   sortCommentsBySupport,
 } from "./domain";
 import type { CommentRecord } from "./types";
@@ -15,6 +18,32 @@ describe("normalizeAlias", () => {
 
   it("keeps supported characters", () => {
     expect(normalizeAlias("citizen_2030")).toBe("citizen_2030");
+  });
+});
+
+describe("normalizeEmail", () => {
+  it("trims and lowercases email addresses", () => {
+    expect(normalizeEmail(" Citoyen@Example.COM ")).toBe("citoyen@example.com");
+  });
+});
+
+describe("isEmailValid", () => {
+  it("accepts a standard email address", () => {
+    expect(isEmailValid("citoyen@example.com")).toBe(true);
+  });
+
+  it("rejects malformed email addresses", () => {
+    expect(isEmailValid("citoyen.example.com")).toBe(false);
+  });
+});
+
+describe("isPasswordValid", () => {
+  it("accepts a password with letters and numbers", () => {
+    expect(isPasswordValid("Debat2030")).toBe(true);
+  });
+
+  it("rejects weak passwords", () => {
+    expect(isPasswordValid("debatsanschiffre")).toBe(false);
   });
 });
 

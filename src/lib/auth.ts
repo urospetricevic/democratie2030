@@ -3,34 +3,38 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 import { z } from "zod";
 import { appEnv, isGoogleAuthConfigured } from "@/lib/env";
-import { registerGuestIdentity } from "@/lib/repository";
+import { authenticatePasswordAccount } from "@/lib/repository";
 
-const guestCredentialsSchema = z.object({
-  alias: z.string().min(1),
-  guestId: z.string().min(8).max(128),
+const accountCredentialsSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1).max(72),
 });
 
 type AppProvider = NonNullable<NextAuthOptions["providers"]>[number];
 
 const providers: AppProvider[] = [
   CredentialsProvider({
-    id: "guest",
-    name: "Citizen access",
+    id: "account",
+    name: "Citizen account",
     credentials: {
-      alias: { label: "Alias", type: "text" },
-      guestId: { label: "Guest ID", type: "text" },
+      email: { label: "Email", type: "email" },
+      password: { label: "Password", type: "password" },
     },
     async authorize(credentials) {
-      const parsed = guestCredentialsSchema.safeParse(credentials);
+      const parsed = accountCredentialsSchema.safeParse(credentials);
       if (!parsed.success) {
         return null;
       }
 
       try {
-        const profile = await registerGuestIdentity(
-          parsed.data.guestId,
-          parsed.data.alias,
+        const profile = await authenticatePasswordAccount(
+          parsed.data.email,
+          parsed.data.password,
         );
+
+        if (!profile) {
+          return null;
+        }
 
         return {
           id: profile.userId,
@@ -39,7 +43,7 @@ const providers: AppProvider[] = [
           image: null,
         };
       } catch (error) {
-        console.error("Guest access failed.", error);
+        console.error("Password account sign-in failed.", error);
         return null;
       }
     },
@@ -93,7 +97,10 @@ export const authOptions: NextAuthOptions = {
         token.email = profile.email;
       }
       if (account?.provider) {
-        token.provider = account.provider === "credentials" ? "guest" : account.provider;
+        token.provider =
+          account.type === "credentials" || account.provider === "account"
+            ? "password"
+            : account.provider;
       }
       return token;
     },

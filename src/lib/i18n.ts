@@ -25,27 +25,48 @@ const copy = {
     voteNo: "Je penche vers le Non",
     currentVote: "Votre position actuelle",
     authPrompt:
-      "Accedez au debat avec un alias citoyen ou un fournisseur externe pour voter, commenter et soutenir les contributions.",
+      "Creez un vrai compte pour voter, commenter et soutenir les contributions.",
     authUnavailable:
       "La participation n'est pas disponible sur cet environnement.",
-    signIn: "Acceder pour participer",
+    signIn: "Se connecter",
     signOut: "Se deconnecter",
-    accessTitle: "Entrez dans le debat",
+    accessTitle: "Creer un compte citoyen",
     accessIntro:
-      "Choisissez un acces rapide pour participer. Le mode citoyen est lie a ce navigateur et suffit pour ce prototype.",
-    accessGuestTitle: "Mode citoyen",
-    accessGuestBody:
-      "Choisissez votre alias public et participez sans passer par un fournisseur externe.",
-    accessGuestButton: "Continuer avec mon alias",
-    accessGuestHint:
-      "Votre voix reste associee a ce navigateur. Vous pourrez voter, commenter et soutenir les arguments en quelques secondes.",
+      "L'acces au debat passe maintenant par un vrai compte: email, mot de passe, puis pseudo public visible par les autres.",
+    accessAccountTitle: "Nouveau compte",
+    accessAccountBody:
+      "Votre email reste prive. Votre pseudo public apparait sur vos commentaires, vos soutiens et votre participation.",
+    accessAccountButton: "Creer mon compte",
+    accessAccountHint:
+      "Compte email prive, identite publique sous pseudo.",
+    accessSignInTitle: "Connexion",
+    accessSignInBody:
+      "Vous avez deja un compte ? Reprenez votre place dans le debat en quelques secondes.",
+    accessSignInButton: "Me connecter",
+    accessEmailLabel: "Email",
+    accessPasswordLabel: "Mot de passe",
+    accessPasswordConfirmLabel: "Confirmer le mot de passe",
+    accessAliasLabel: "Pseudo public",
+    accessPasswordHelp:
+      "8 a 72 caracteres, avec au moins une lettre et un chiffre.",
+    accessAutoLoginFallback:
+      "Compte cree. Connectez-vous pour continuer.",
     accessGoogleTitle: "Google en option",
     accessGoogleBody:
-      "Si vous preferez un fournisseur externe, l'entree Google peut etre reactivee plus tard sans changer le reste du produit.",
+      "Si vous gardez un fournisseur externe, Google peut rester un point d'entree secondaire sans remplacer le compte principal.",
     accessGoogleButton: "Continuer avec Google",
     accessOptional: "Optionnel",
     accessRecommended: "Recommande",
     accessBack: "Retour a l'accueil",
+    emailExists: "Un compte existe deja avec cet email.",
+    emailInvalid: "Entrez un email valide.",
+    passwordInvalid:
+      "Le mot de passe doit contenir 8 a 72 caracteres, avec au moins une lettre et un chiffre.",
+    passwordMismatch: "Les mots de passe ne correspondent pas.",
+    loginInvalid: "Email ou mot de passe incorrect.",
+    registrationInvalid: "Les informations du compte sont invalides.",
+    registrationFailed: "La creation du compte a echoue.",
+    loginFailed: "La connexion a echoue.",
     debateQuestionLabel: "Question ouverte",
     debateArgumentsLabel: "Arguments initiaux",
     commentsTitle: "Commentaires publics",
@@ -103,27 +124,48 @@ const copy = {
     voteNo: "I lean No",
     currentVote: "Your current position",
     authPrompt:
-      "Use a civic alias or an external provider to vote, comment, and support contributions.",
+      "Create a real account to vote, comment, and support contributions.",
     authUnavailable:
       "Participation is not available in this environment.",
-    signIn: "Access the debate",
+    signIn: "Sign in",
     signOut: "Sign out",
-    accessTitle: "Enter the debate",
+    accessTitle: "Create your civic account",
     accessIntro:
-      "Pick a fast access mode to participate. Civic mode is tied to this browser and is enough for this prototype.",
-    accessGuestTitle: "Civic mode",
-    accessGuestBody:
-      "Choose your public alias and participate without relying on an external provider.",
-    accessGuestButton: "Continue with my alias",
-    accessGuestHint:
-      "Your voice stays tied to this browser. You will be able to vote, comment, and support arguments in seconds.",
+      "Participation now runs through a real account: email, password, and a public alias visible to everyone else.",
+    accessAccountTitle: "New account",
+    accessAccountBody:
+      "Your email stays private. Your public alias appears on your comments, your support actions, and your participation.",
+    accessAccountButton: "Create my account",
+    accessAccountHint:
+      "Private email, public identity through an alias.",
+    accessSignInTitle: "Sign in",
+    accessSignInBody:
+      "Already have an account? Rejoin the debate in a few seconds.",
+    accessSignInButton: "Sign in now",
+    accessEmailLabel: "Email",
+    accessPasswordLabel: "Password",
+    accessPasswordConfirmLabel: "Confirm password",
+    accessAliasLabel: "Public alias",
+    accessPasswordHelp:
+      "8 to 72 characters, with at least one letter and one number.",
+    accessAutoLoginFallback:
+      "Account created. Sign in to continue.",
     accessGoogleTitle: "Google optional",
     accessGoogleBody:
-      "If you prefer an external provider, Google entry can be re-enabled later without changing the rest of the product.",
+      "If you keep an external provider, Google can remain a secondary entry point without replacing the main account flow.",
     accessGoogleButton: "Continue with Google",
     accessOptional: "Optional",
     accessRecommended: "Recommended",
     accessBack: "Back to home",
+    emailExists: "An account already exists for this email.",
+    emailInvalid: "Enter a valid email address.",
+    passwordInvalid:
+      "Password must be 8 to 72 characters long and include at least one letter and one number.",
+    passwordMismatch: "Passwords do not match.",
+    loginInvalid: "Incorrect email or password.",
+    registrationInvalid: "The account details are invalid.",
+    registrationFailed: "Account creation failed.",
+    loginFailed: "Sign-in failed.",
     debateQuestionLabel: "Open question",
     debateArgumentsLabel: "Initial arguments",
     commentsTitle: "Public comments",

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
-import { GuestAccessForm } from "@/components/guest-access-form";
+import { AccountAccessForm } from "@/components/account-access-form";
 import { authOptions } from "@/lib/auth";
 import { isGoogleAuthConfigured } from "@/lib/env";
 import { getCopy, isLocale } from "@/lib/i18n";
@@ -39,7 +39,7 @@ export default async function AccessPage({
     : null;
 
   if (session?.user?.id) {
-    if (profile || session.user.id.startsWith("guest_")) {
+    if (profile) {
       redirect(nextPath);
     }
 
@@ -75,13 +75,13 @@ export default async function AccessPage({
               {dictionary.authPrompt}
             </p>
             <p className="mt-3 text-sm leading-7 text-[var(--color-muted-strong)]">
-              {dictionary.accessGuestHint}
+              {dictionary.accessAccountHint}
             </p>
           </div>
         </div>
       </div>
 
-      <GuestAccessForm
+      <AccountAccessForm
         locale={locale}
         nextPath={nextPath}
         googleEnabled={isGoogleAuthConfigured()}

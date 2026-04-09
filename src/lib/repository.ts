@@ -1,13 +1,37 @@
 import { randomUUID } from "node:crypto";
+import { compare, hash } from "bcryptjs";
 import fallbackDebate from "@/data/quebec-debate-fallback.json";
-import { clampCommentBody, computeSocietalPulse, computeVoteTotals, isAliasValid, normalizeAlias, sortCommentsByRecency, sortCommentsBySupport } from "@/lib/domain";
+import {
+  clampCommentBody,
+  computeSocietalPulse,
+  computeVoteTotals,
+  isAliasValid,
+  isEmailValid,
+  isPasswordValid,
+  normalizeAlias,
+  normalizeEmail,
+  sortCommentsByRecency,
+  sortCommentsBySupport,
+} from "@/lib/domain";
 import { isFirestoreConfigured } from "@/lib/env";
 import { getFirestore } from "@/lib/firestore";
 import { generateDebateSeed } from "@/lib/seed";
-import { DEBATE_SLUG, type AuthProvider, type CommentRecord, type Debate, type DebateAggregate, type DebatePageData, type UserProfile, type ViewerState, type VoteRecord, type VoteSide } from "@/lib/types";
+import {
+  DEBATE_SLUG,
+  type AuthProvider,
+  type CommentRecord,
+  type Debate,
+  type DebateAggregate,
+  type DebatePageData,
+  type PasswordAccountRecord,
+  type UserProfile,
+  type ViewerState,
+  type VoteRecord,
+  type VoteSide,
+} from "@/lib/types";
 
 const FALLBACK_DEBATE = structuredClone(fallbackDebate) as Debate;
-const GUEST_ID_PATTERN = /^[a-z0-9-]{12,128}$/;
+const PASSWORD_HASH_ROUNDS = 10;
 
 function debatesCollection() {
   return getFirestore().collection("debates");
@@ -23,6 +47,10 @@ function profilesCollection() {
 
 function aliasesCollection() {
   return getFirestore().collection("aliases");
+}
+
+function passwordAccountsCollection() {
+  return getFirestore().collection("authAccounts");
 }
 
 function votesCollection() {
@@ -259,40 +287,116 @@ export async function setUserAlias(
   });
 }
 
-function sanitizeGuestId(rawGuestId: string) {
-  return rawGuestId
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9-]/g, "");
-}
+export async function createPasswordAccount(
+  rawEmail: string,
+  rawPassword: string,
+  rawAlias: string,
+) {
+  const emailNormalized = normalizeEmail(rawEmail);
+  const aliasNormalized = normalizeAlias(rawAlias);
 
-export async function registerGuestIdentity(rawGuestId: string, rawAlias: string) {
-  const guestId = sanitizeGuestId(rawGuestId);
-  if (!GUEST_ID_PATTERN.test(guestId)) {
-    throw new Error("INVALID_GUEST_ID");
+  if (!isEmailValid(emailNormalized)) {
+    throw new Error("INVALID_EMAIL");
   }
 
-  const userId = `guest_${guestId}`;
-  const email = `${guestId}@guest.democratie2030.local`;
+  if (!isPasswordValid(rawPassword)) {
+    throw new Error("INVALID_PASSWORD");
+  }
+
+  if (!isAliasValid(aliasNormalized)) {
+    throw new Error("INVALID_ALIAS");
+  }
 
   if (!isFirestoreConfigured()) {
-    const aliasNormalized = normalizeAlias(rawAlias);
-    if (!isAliasValid(aliasNormalized)) {
-      throw new Error("INVALID_ALIAS");
-    }
-
-    return {
-      userId,
-      email,
-      alias: aliasNormalized,
-      aliasNormalized,
-      authProvider: "guest" as const,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    throw new Error("AUTH_UNAVAILABLE");
   }
 
-  return setUserAlias(userId, email, rawAlias, "guest");
+  const db = getFirestore();
+  const now = new Date().toISOString();
+  const userId = `user_${randomUUID()}`;
+  const passwordHash = await hash(rawPassword, PASSWORD_HASH_ROUNDS);
+
+  return db.runTransaction(async (transaction) => {
+    const profileRef = profilesCollection().doc(userId);
+    const aliasRef = aliasesCollection().doc(aliasNormalized);
+    const accountRef = passwordAccountsCollection().doc(emailNormalized);
+
+    const [aliasSnap, accountSnap] = await Promise.all([
+      transaction.get(aliasRef),
+      transaction.get(accountRef),
+    ]);
+
+    if (accountSnap.exists) {
+      throw new Error("EMAIL_TAKEN");
+    }
+
+    if (aliasSnap.exists) {
+      throw new Error("ALIAS_TAKEN");
+    }
+
+    const profile: UserProfile = {
+      userId,
+      email: emailNormalized,
+      alias: aliasNormalized,
+      aliasNormalized,
+      authProvider: "password",
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    const passwordAccount: PasswordAccountRecord = {
+      userId,
+      email: emailNormalized,
+      emailNormalized,
+      passwordHash,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    transaction.set(
+      aliasRef,
+      {
+        alias: aliasNormalized,
+        aliasNormalized,
+        userId,
+        updatedAt: now,
+      },
+      { merge: true },
+    );
+    transaction.set(profileRef, profile, { merge: true });
+    transaction.set(accountRef, passwordAccount, { merge: true });
+
+    return profile;
+  });
+}
+
+export async function authenticatePasswordAccount(
+  rawEmail: string,
+  rawPassword: string,
+) {
+  if (!isFirestoreConfigured()) {
+    return null;
+  }
+
+  const emailNormalized = normalizeEmail(rawEmail);
+  if (!isEmailValid(emailNormalized) || rawPassword.length === 0) {
+    return null;
+  }
+
+  const accountSnap = await passwordAccountsCollection().doc(emailNormalized).get();
+  if (!accountSnap.exists) {
+    return null;
+  }
+
+  const account = accountSnap.data() as PasswordAccountRecord;
+  const passwordMatches = await compare(rawPassword, account.passwordHash);
+
+  if (!passwordMatches) {
+    return null;
+  }
+
+  const profile = await getUserProfile(account.userId);
+  return profile;
 }
 
 export async function submitVote(userId: string, debateId: string, side: VoteSide) {

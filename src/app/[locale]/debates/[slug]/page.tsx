@@ -30,8 +30,7 @@ export default async function DebatePage({
   if (
     session?.user?.id &&
     data.source === "firestore" &&
-    !data.viewer.hasAlias &&
-    !session.user.id.startsWith("guest_")
+    !data.viewer.hasAlias
   ) {
     redirect(`/${locale}/welcome?next=${encodeURIComponent(`/${locale}/debates/${slug}`)}`);
   }

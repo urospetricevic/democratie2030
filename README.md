@@ -10,7 +10,7 @@ npm run dev
 ```
 
 Without Firestore, the UI falls back to a bundled debate seed in read-only mode.
-The participation flow supports a browser-bound civic alias by default. Google auth is optional and only enabled when `AUTH_GOOGLE_ENABLED=true`.
+The participation flow uses a real email + password account by default, with a public alias shown in the debate. Google auth is optional and only enabled when `AUTH_GOOGLE_ENABLED=true`.
 
 ## Deploy
 
