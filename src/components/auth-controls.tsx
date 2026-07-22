@@ -53,18 +53,14 @@ export function AuthControls({
           </button>
         </>
       ) : (
-        <div className="flex flex-col items-end gap-2">
+        <div className="flex items-center">
           <Link
             href={`/${locale}/access?next=${encodeURIComponent(pathname)}`}
             className="btn-solid"
           >
             {dictionary.signIn}
           </Link>
-          <span className="text-xs font-medium text-[var(--color-muted-strong)]">
-            {googleEnabled
-              ? `${dictionary.accessAccountHint} Google ${dictionary.accessOptional.toLowerCase()}.`
-              : dictionary.accessAccountHint}
-          </span>
+          <span className="sr-only">{googleEnabled ? dictionary.accessOptional : dictionary.accessAccountHint}</span>
         </div>
       )}
     </div>

@@ -30,24 +30,13 @@ export default async function LocaleLayout({
 
   return (
     <div className="site-frame min-h-screen">
-      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col px-5 py-6 sm:px-8">
-        <header className="panel rounded-[2rem] px-6 py-5">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-2">
-              <p className="eyebrow text-xs font-bold text-[var(--color-muted)]">
-                {dictionary.heroLabel}
-              </p>
-              <Link href={`/${locale}`} className="inline-block">
-                <h1 className="text-3xl font-semibold text-[var(--color-ink)]">
-                  {dictionary.brand}
-                </h1>
-              </Link>
-              <p className="max-w-2xl text-sm leading-7 text-[var(--color-muted)]">
-                {dictionary.strapline}
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-3 lg:items-end">
+      <div className="mx-auto flex min-h-screen w-full max-w-[1536px] flex-col">
+        <header className="site-header">
+          <div className="brand-lockup">
+            <Link href={`/${locale}`}><h1>{dictionary.brand}</h1></Link>
+            <p className="rich-copy">{dictionary.strapline}</p>
+          </div>
+          <div className="header-actions">
               <LanguageSwitcher locale={locale} />
               <AuthControls
                 locale={locale}
@@ -55,11 +44,17 @@ export default async function LocaleLayout({
                 googleEnabled={isGoogleAuthConfigured()}
                 alias={profile?.alias ?? session?.user?.name ?? null}
               />
-            </div>
           </div>
         </header>
 
-        <main className="flex-1 py-6">{children}</main>
+        <main className="flex-1">{children}</main>
+        <footer className="site-footer">
+          <div className="brand-lockup">
+            <strong>{dictionary.brand}</strong>
+            <p className="rich-copy">{dictionary.strapline}</p>
+          </div>
+          <p>{dictionary.globalVision} · 4B</p>
+        </footer>
       </div>
     </div>
   );

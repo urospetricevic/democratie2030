@@ -1,4 +1,6 @@
-# Democratie2030
+# DBYLE
+
+Don't believe your lying eyes.
 
 Bilingual civic debate prototype built with Next.js, Auth.js, Firestore, and Cloud Run.
 

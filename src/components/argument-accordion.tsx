@@ -32,7 +32,7 @@ export function ArgumentAccordion({
                 color: tone === "yes" ? "var(--color-yes)" : "var(--color-no)",
               }}
             >
-              {tone === "yes" ? "Yes" : "No"}
+              {tone === "yes" ? dictionary.sideYes : dictionary.sideNo}
             </span>
             <h3 className="text-xl font-semibold leading-tight text-[var(--color-ink)]">
               {argument.title[locale]}

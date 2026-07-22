@@ -92,7 +92,7 @@ export default async function DebatePage({
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 <div className="rounded-[1.4rem] border border-[var(--color-border-strong)] bg-[var(--color-yes-soft)] p-4">
                   <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-yes)]">
-                    Yes
+                    {dictionary.sideYes}
                   </p>
                   <p className="mt-2 text-3xl font-semibold text-[var(--color-yes)]">
                     {formatPercent(locale, data.pulse.yesPercent)}%
@@ -103,7 +103,7 @@ export default async function DebatePage({
                 </div>
                 <div className="rounded-[1.4rem] border border-[var(--color-border-strong)] bg-[var(--color-no-soft)] p-4">
                   <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--color-no)]">
-                    No
+                    {dictionary.sideNo}
                   </p>
                   <p className="mt-2 text-3xl font-semibold text-[var(--color-no)]">
                     {formatPercent(locale, data.pulse.noPercent)}%
@@ -156,7 +156,7 @@ export default async function DebatePage({
         <div className="panel rounded-[2rem] p-6">
           <div className="mb-5">
             <p className="eyebrow text-xs font-bold text-[var(--color-yes)]">
-              Yes
+              {dictionary.sideYes}
             </p>
             <h3 className="mt-2 text-3xl font-semibold text-[var(--color-ink)]">
               {data.debate.yesLabel[locale]}
@@ -177,7 +177,7 @@ export default async function DebatePage({
         <div className="panel rounded-[2rem] p-6">
           <div className="mb-5">
             <p className="eyebrow text-xs font-bold text-[var(--color-no)]">
-              No
+              {dictionary.sideNo}
             </p>
             <h3 className="mt-2 text-3xl font-semibold text-[var(--color-ink)]">
               {data.debate.noLabel[locale]}
