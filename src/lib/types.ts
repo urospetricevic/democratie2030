@@ -40,6 +40,8 @@ export interface DebateAggregate {
   commentCount: number;
   upvoteCount: number;
   topCommentIds: string[];
+  isSimulated?: boolean;
+  simulatedVoterCount?: number;
   updatedAt: string;
 }
 
@@ -86,6 +88,7 @@ export interface CommentRecord {
   alias: string;
   body: string;
   upvoteCount: number;
+  isSimulated?: boolean;
   createdAt: string;
   updatedAt: string;
 }

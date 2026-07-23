@@ -74,6 +74,8 @@ function createDefaultAggregate(debateId: string): DebateAggregate {
     commentCount: 0,
     upvoteCount: 0,
     topCommentIds: [],
+    isSimulated: false,
+    simulatedVoterCount: 0,
     updatedAt: new Date().toISOString(),
   };
 }
@@ -121,6 +123,7 @@ function mapComment(value: Partial<CommentRecord>): CommentRecord {
     alias: value.alias ?? "citizen",
     body: value.body ?? "",
     upvoteCount: value.upvoteCount ?? 0,
+    isSimulated: value.isSimulated ?? false,
     createdAt: value.createdAt ?? new Date().toISOString(),
     updatedAt: value.updatedAt ?? new Date().toISOString(),
   };

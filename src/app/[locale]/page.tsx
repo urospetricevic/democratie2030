@@ -45,7 +45,9 @@ export default async function LocaleHomePage({
         <aside id="public-pulse" className="pulse-module">
           <div className="pulse-heading">
             <p className="section-label">{copy.pulseTitle}</p>
-            <span className="live-dot">{copy.liveUpdate}</span>
+            <span className="live-dot">
+              {data.pulse.isSimulated ? copy.simulatedDataLabel : copy.liveUpdate}
+            </span>
           </div>
           <div className="pulse-results">
             <div className="result result-yes">

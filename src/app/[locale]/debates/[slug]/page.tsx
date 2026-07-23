@@ -52,7 +52,9 @@ export default async function DebatePage({
                 {dictionary.liveBadge}
               </span>
               <span className="rounded-full border border-[var(--color-border-strong)] bg-white/88 px-4 py-2 text-xs font-semibold text-[var(--color-muted-strong)]">
-                {data.source === "firestore"
+                {data.pulse.isSimulated
+                  ? dictionary.simulatedDataLabel
+                  : data.source === "firestore"
                   ? dictionary.seededBy
                   : dictionary.fallbackBadge}
               </span>
