@@ -327,16 +327,21 @@ textarea {
 .argument-row[open] .argument-chevron { transform: rotate(180deg); }
 .argument-details { margin: 0 1.5rem 1.25rem 3.75rem; color: var(--color-ink); font-size: .94rem; line-height: 1.75; }
 
-.top-voices-section { padding: 2.5rem clamp(1.5rem, 4vw, 3.5rem); background: #f1f6ff; border-bottom: 1px solid #d8e4f7; }
-.top-voices-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 2rem; }
-.top-voices-heading h2 { font-size: 1.65rem; font-weight: 500; }
-.top-voices-grid { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 1.5rem; }
-.top-voice { display: grid; grid-template-columns: 2.5rem 1fr; gap: .75rem; padding-right: 1.5rem; }
-.top-voice + .top-voice { padding-left: 1.5rem; border-left: 1px solid rgba(10,75,216,.25); }
-.top-voice-rank { color: var(--color-accent); font-family: var(--font-serif), serif; font-size: 2.6rem; line-height: 1; }
-.top-voice-alias { color: var(--color-ink); font-weight: 750; }
-.top-voice-body { display: -webkit-box; margin-top: .35rem; overflow: hidden; color: var(--color-muted-strong); font-size: .82rem; line-height: 1.5; -webkit-box-orient: vertical; -webkit-line-clamp: 3; }
-.top-voice-meta { display: flex; gap: .8rem; margin-top: .7rem; color: var(--color-accent); font-size: .66rem; font-weight: 750; text-transform: uppercase; }
+.top-voices-section { padding: 1.35rem clamp(1.5rem, 4vw, 3.5rem) 1.55rem; background: #eaf2ff; border-block: 1px solid #cbdcf8; }
+.top-voices-heading { display: flex; align-items: center; justify-content: space-between; gap: 2rem; }
+.top-voices-link { color: var(--color-accent); font-size: .65rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.top-voices-link:hover { text-decoration: underline; text-underline-offset: .2rem; }
+.top-voices-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 1.15rem; }
+.top-voice { display: grid; grid-template-columns: 2rem 2.75rem minmax(0, 1fr); gap: .7rem; align-items: center; min-width: 0; padding-right: 1.4rem; }
+.top-voice + .top-voice { padding-left: 1.4rem; border-left: 1px solid rgba(10,75,216,.2); }
+.top-voice-rank { color: var(--color-accent); font-family: var(--font-serif), serif; font-size: 2.35rem; line-height: 1; }
+.top-voice-avatar { display: grid; width: 2.75rem; height: 2.75rem; place-items: center; border: 1px solid rgba(10,75,216,.2); border-radius: 50%; background: #d5e4ff; color: #0840a7; font-size: .7rem; font-weight: 850; letter-spacing: .04em; }
+.top-voice:nth-child(2) .top-voice-avatar { background: #e7ddff; color: #5d35a7; }
+.top-voice:nth-child(3) .top-voice-avatar { background: #d9ece8; color: #176c5b; }
+.top-voice-copy { min-width: 0; }
+.top-voice-alias { overflow: hidden; color: var(--color-ink); font-size: .78rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+.top-voice-body { overflow: hidden; margin-top: .16rem; color: var(--color-muted-strong); font-size: .69rem; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+.top-voice-meta { margin-top: .3rem; color: var(--color-accent); font-size: .59rem; font-weight: 800; letter-spacing: .035em; text-transform: uppercase; }
 .empty-state { padding: 2rem 0; color: var(--color-muted); }
 
 .discussion-section { padding: 3.5rem clamp(1.5rem, 4vw, 3.5rem); }
@@ -363,7 +368,7 @@ textarea {
   .argument-columns { grid-template-columns: 1fr; }
   .argument-side + .argument-side { padding-left: 0; margin-top: 2.5rem; margin-left: 0; border-left: 0; }
   .top-voices-grid { grid-template-columns: 1fr; }
-  .top-voice { padding: 1rem 0; }
+  .top-voice { padding: .8rem 0; }
   .top-voice + .top-voice { padding-left: 0; border-top: 1px solid rgba(10,75,216,.2); border-left: 0; }
 }
 
@@ -378,8 +383,8 @@ textarea {
   .arguments-section, .top-voices-section, .discussion-section { padding-right: 1.25rem; padding-left: 1.25rem; }
   .argument-summary { grid-template-columns: 2rem minmax(0,1fr) 1rem; gap: .65rem; }
   .argument-details { margin-left: 2.65rem; }
-  .top-voices-heading { display: block; }
-  .top-voices-heading h2 { margin-top: .4rem; }
+  .top-voices-heading { align-items: flex-start; }
+  .top-voices-link { max-width: 9rem; text-align: right; }
   .discussion-meta { align-items: flex-start; }
 }
 

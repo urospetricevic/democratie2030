@@ -92,7 +92,7 @@ export function CommentsSection({
   }
 
   return (
-    <section className="discussion-section">
+    <section className="discussion-section" id="public-comments">
       <div>
         <div className="discussion-heading">
           <p className="section-label">

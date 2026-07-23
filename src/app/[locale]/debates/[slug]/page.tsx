@@ -3,7 +3,7 @@ import { CSSProperties } from "react";
 import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
-import { formatDateTime, formatNumber, formatPercent, getCopy, isLocale } from "@/lib/i18n";
+import { formatNumber, formatPercent, getCopy, isLocale } from "@/lib/i18n";
 import { DEBATE_SLUG, type Locale } from "@/lib/types";
 import { getDebatePageData } from "@/lib/repository";
 import { VotePanel } from "@/components/vote-panel";
@@ -108,8 +108,10 @@ export default async function DebatePage({
 
       <section className="top-voices-section">
         <div className="top-voices-heading">
-          <p className="section-label">{copy.topComments}</p>
-          <h2 className="rich-copy">{copy.topComments}</h2>
+          <p className="section-label">{copy.topVoicesThisWeek}</p>
+          <Link href="#public-comments" className="top-voices-link">
+            {copy.seeAllVoices} <span aria-hidden="true">→</span>
+          </Link>
         </div>
         <div className="top-voices-grid">
           {data.topComments.length === 0 ? (
@@ -117,12 +119,14 @@ export default async function DebatePage({
           ) : data.topComments.map((comment, index) => (
             <article className="top-voice" key={comment.id}>
               <span className="top-voice-rank">{index + 1}</span>
-              <div>
+              <span className="top-voice-avatar" aria-hidden="true">
+                {comment.alias.slice(0, 2).toLocaleUpperCase(locale)}
+              </span>
+              <div className="top-voice-copy">
                 <p className="top-voice-alias">{comment.alias}</p>
                 <p className="top-voice-body rich-copy">{comment.body}</p>
                 <div className="top-voice-meta">
                   <span>{copy.upvote} · {comment.upvoteCount}</span>
-                  <span>{formatDateTime(locale, comment.createdAt)}</span>
                 </div>
               </div>
             </article>
