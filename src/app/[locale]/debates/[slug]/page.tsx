@@ -90,7 +90,7 @@ export default async function DebatePage({
               <span>{copy.sideYes}</span>
               <h3>{data.debate.yesLabel[locale]}</h3>
             </div>
-            {data.debate.yesArguments.map((argument, index) => (
+            {data.debate.yesArguments.slice(0, 3).map((argument, index) => (
               <ArgumentAccordion key={argument.id} locale={locale} argument={argument} tone="yes" index={index} />
             ))}
           </div>
@@ -99,7 +99,7 @@ export default async function DebatePage({
               <span>{copy.sideNo}</span>
               <h3>{data.debate.noLabel[locale]}</h3>
             </div>
-            {data.debate.noArguments.map((argument, index) => (
+            {data.debate.noArguments.slice(0, 3).map((argument, index) => (
               <ArgumentAccordion key={argument.id} locale={locale} argument={argument} tone="no" index={index} />
             ))}
           </div>
