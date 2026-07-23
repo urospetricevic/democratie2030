@@ -6,7 +6,7 @@ if (!projectId || !accessToken) {
 }
 
 const debateId = "quebec-country";
-const databaseRoot = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
+const documentRoot = `projects/${projectId}/databases/(default)/documents`;
 const now = new Date().toISOString();
 
 const demoComments = [
@@ -73,7 +73,7 @@ async function commit() {
     update: { name: string; fields: Record<string, unknown> };
   }> = demoComments.map((comment, index) => ({
     update: {
-      name: `${databaseRoot}/comments/${comment.id}`,
+      name: `${documentRoot}/comments/${comment.id}`,
       fields: {
         id: stringValue(comment.id),
         debateId: stringValue(debateId),
@@ -90,7 +90,7 @@ async function commit() {
 
   writes.push({
     update: {
-      name: `${databaseRoot}/debateAggregates/${debateId}`,
+      name: `${documentRoot}/debateAggregates/${debateId}`,
       fields: {
         debateId: stringValue(debateId),
         yesVotes: integerValue(54),
