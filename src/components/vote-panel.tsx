@@ -62,22 +62,19 @@ export function VotePanel({
   }
 
   return (
-    <section className="panel rounded-[2rem] p-6">
-      <div className="space-y-2">
-        <p className="eyebrow text-xs font-bold text-[var(--color-muted)]">
+    <section className="debate-vote-panel">
+      <div>
+        <p className="section-label">
           {dictionary.voteLabel}
         </p>
-        <h2 className="text-2xl font-semibold text-[var(--color-ink)]">
-          {dictionary.voteLabel}
-        </h2>
-        <p className="text-sm leading-7 text-[var(--color-muted)]">
+        <p className="vote-prompt rich-copy">
           {isAuthenticated && hasAlias
             ? dictionary.participationLine
             : dictionary.authPrompt}
         </p>
       </div>
 
-      <div className="mt-5 grid gap-3">
+      <div className="vote-actions">
         {(["yes", "no"] as const).map((side) => {
           const active = currentVote === side;
           const isYes = side === "yes";
@@ -88,10 +85,11 @@ export function VotePanel({
               onClick={() => void handleVote(side)}
               disabled={pending}
               className={clsx(
-                "rounded-[1.6rem] border px-4 py-4 text-left transition duration-200",
+                "debate-vote-button",
                 active
-                  ? "border-transparent text-white shadow-[0_18px_45px_rgba(15,23,42,0.22)]"
-                  : "border-[var(--color-border-strong)] bg-[var(--color-paper-strong)] hover:-translate-y-0.5 hover:border-[var(--color-highlight)] hover:bg-white",
+                  ? "is-active"
+                  : "",
+                isYes ? "is-yes" : "is-no",
               )}
               style={
                 active
@@ -103,10 +101,8 @@ export function VotePanel({
                   : undefined
               }
             >
-              <span className="block text-xs font-bold uppercase tracking-[0.22em] opacity-90">
-                {active ? dictionary.currentVote : dictionary.voteLabel}
-              </span>
-              <span className="mt-1 block text-base font-semibold">
+              <span className="vote-icon" aria-hidden="true">{isYes ? "↑" : "↓"}</span>
+              <span>
                 {isYes ? dictionary.voteYes : dictionary.voteNo}
               </span>
             </button>
@@ -115,7 +111,7 @@ export function VotePanel({
       </div>
 
       {message ? (
-        <p className="mt-4 text-sm font-medium text-[var(--color-no)]">
+        <p className="vote-message">
           {message}
         </p>
       ) : null}

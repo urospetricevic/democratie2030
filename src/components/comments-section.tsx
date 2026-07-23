@@ -92,32 +92,32 @@ export function CommentsSection({
   }
 
   return (
-    <section className="panel rounded-[2rem] p-6">
-      <div className="flex flex-col gap-5">
-        <div>
-          <p className="eyebrow text-xs font-bold text-[var(--color-muted)]">
+    <section className="discussion-section">
+      <div>
+        <div className="discussion-heading">
+          <p className="section-label">
             {dictionary.commentsTitle}
           </p>
-          <h2 className="mt-2 text-3xl font-semibold text-[var(--color-ink)]">
+          <h2>
             {dictionary.commentsTitle}
           </h2>
-          <p className="mt-2 max-w-3xl text-sm leading-7 text-[var(--color-muted)]">
+          <p>
             {dictionary.commentsSubtitle}
           </p>
         </div>
 
-        <div className="rounded-[1.5rem] border border-[var(--color-border)] bg-white/90 p-4">
-          <label className="mb-3 block text-sm font-semibold text-[var(--color-ink)]">
+        <div className="comment-composer">
+          <label>
             {dictionary.addComment}
           </label>
           <textarea
             value={body}
             onChange={(event) => setBody(event.target.value)}
             placeholder={dictionary.commentPlaceholder}
-            className="min-h-32 w-full rounded-[1.2rem] border border-[var(--color-border)] bg-[var(--color-paper-strong)] px-4 py-3 text-sm leading-7 text-[var(--color-ink)] outline-none transition focus:border-[var(--color-accent)]"
+            className="comment-textarea"
           />
-          <div className="mt-3 flex items-center justify-between gap-3">
-            <span className="text-xs text-[var(--color-muted)]">
+          <div className="composer-actions">
+            <span>
               {body.trim().length}/1200
             </span>
             <button
@@ -135,7 +135,7 @@ export function CommentsSection({
           <p className="text-sm font-medium text-[var(--color-no)]">{message}</p>
         ) : null}
 
-        <div className="grid gap-4">
+        <div className="discussion-feed">
           {comments.length === 0 ? (
             <div className="rounded-[1.5rem] border border-dashed border-[var(--color-border)] px-5 py-8 text-center text-sm text-[var(--color-muted)]">
               {dictionary.noCommentsYet}
@@ -144,14 +144,14 @@ export function CommentsSection({
             comments.map((comment) => (
               <article
                 key={comment.id}
-                className="rounded-[1.5rem] border border-[var(--color-border)] bg-white/85 p-5"
+                className="discussion-row"
               >
-                <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="discussion-meta">
                   <div>
-                    <p className="text-sm font-bold uppercase tracking-[0.2em] text-[var(--color-accent)]">
+                    <p className="discussion-alias">
                       {comment.alias}
                     </p>
-                    <p className="mt-1 text-xs text-[var(--color-muted)]">
+                    <p className="discussion-date">
                       {formatDateTime(locale, comment.createdAt)}
                     </p>
                   </div>
@@ -160,14 +160,13 @@ export function CommentsSection({
                     onClick={() => void upvote(comment.id)}
                     disabled={pending}
                     className={clsx(
-                      "rounded-full border border-[var(--color-border-strong)] bg-[var(--color-paper-strong)] px-4 py-2 text-sm font-semibold text-[var(--color-ink)] transition",
-                      "hover:border-[var(--color-highlight)] hover:bg-[var(--color-highlight-soft)] hover:text-[var(--color-ink)]",
+                      "discussion-support",
                     )}
                   >
                     {dictionary.upvote} · {comment.upvoteCount}
                   </button>
                 </div>
-                <p className="rich-copy mt-4 text-base leading-8 text-[var(--color-ink)]">
+                <p className="discussion-body rich-copy">
                   {comment.body}
                 </p>
               </article>

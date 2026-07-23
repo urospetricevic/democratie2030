@@ -90,6 +90,7 @@ const copy = {
     loginFailed: "La connexion a echoue.",
     debateQuestionLabel: "Question ouverte",
     debateArgumentsLabel: "Arguments initiaux",
+    exploreBothSides: "Explorer les deux perspectives.",
     commentsTitle: "Commentaires publics",
     commentsSubtitle:
       "Les commentaires restent independants du vote pour garder un espace de discussion plus ouvert.",
@@ -210,6 +211,7 @@ const copy = {
     loginFailed: "Sign-in failed.",
     debateQuestionLabel: "Open question",
     debateArgumentsLabel: "Initial arguments",
+    exploreBothSides: "Explore both sides.",
     commentsTitle: "Public comments",
     commentsSubtitle:
       "Comments stay independent from each user's vote to keep the discussion space broader.",
