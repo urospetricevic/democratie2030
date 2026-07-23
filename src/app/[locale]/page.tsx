@@ -86,9 +86,9 @@ export default async function LocaleHomePage({
 
         <article className="vision-column">
           <p className="section-label">{copy.globalVision}</p>
-          <h3 className="rich-copy">{copy.fourBillionTitle}</h3>
-          <h4 className="rich-copy">{copy.ambitionNotMetric}</h4>
-          <p>{copy.fourBillionBody}</p>
+          <h3 className="rich-copy">{copy.universalTitle}</h3>
+          <h4 className="rich-copy">{copy.aiCapabilityTitle}</h4>
+          <p>{copy.universalVisionBody}</p>
           <Link href={`/${locale}/debates/${DEBATE_SLUG}`} className="text-link">
             {copy.startHere}<span aria-hidden="true">→</span>
           </Link>

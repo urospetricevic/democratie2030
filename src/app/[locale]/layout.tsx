@@ -53,7 +53,7 @@ export default async function LocaleLayout({
             <strong>{dictionary.brand}</strong>
             <p className="rich-copy">{dictionary.strapline}</p>
           </div>
-          <p>{dictionary.globalVision} · 4B</p>
+          <p>{dictionary.aiInfrastructure}</p>
         </footer>
       </div>
     </div>
