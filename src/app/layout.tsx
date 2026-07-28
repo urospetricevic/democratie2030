@@ -15,7 +15,7 @@ const sourceSerif = Source_Serif_4({
 export const metadata: Metadata = {
   title: "DBYLE — Don't believe your lying eyes",
   description:
-    "A bilingual civic debate platform where society can vote, debate, and surface the strongest public arguments.",
+    "The social network for constructive disagreement. Create debates, map arguments, follow public opinion, and turn thousands of voices into collective intelligence.",
 };
 
 export default function RootLayout({
