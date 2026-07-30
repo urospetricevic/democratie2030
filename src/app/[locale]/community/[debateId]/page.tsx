@@ -58,7 +58,6 @@ export default async function CommunityDebatePage({
       debate={access.debate}
       inviteCode={inviteCode}
       isAuthenticated={Boolean(userId)}
-      isFull={access.status === "full"}
     />
   );
 }

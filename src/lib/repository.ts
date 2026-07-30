@@ -31,6 +31,8 @@ import {
   type CommunityDebate,
   type CommunityDebateAccess,
   type CommunityInvitePreview,
+  type CommunityMember,
+  type CommunityMembership,
   type Debate,
   type DebateAggregate,
   type DebatePageData,
@@ -85,8 +87,29 @@ function communityArgumentsCollection() {
   return getFirestore().collection("communityArguments");
 }
 
+function communityMembershipsCollection() {
+  return getFirestore().collection("communityMemberships");
+}
+
 function argumentCommentsCollection() {
   return getFirestore().collection("argumentComments");
+}
+
+function communityMembershipId(debateId: string, userId: string) {
+  return `${debateId}__${userId}`;
+}
+
+function hasCommunityAccess(
+  debate: CommunityDebate,
+  userId: string | null | undefined,
+  membershipExists = false,
+) {
+  return Boolean(
+    userId &&
+      (debate.ownerId === userId ||
+        isCommunityMember(debate.memberIds ?? [], userId) ||
+        membershipExists),
+  );
 }
 
 function createDefaultAggregate(debateId: string): DebateAggregate {
@@ -197,8 +220,30 @@ function communityInvitePreview(
     category: debate.category,
     locale: debate.locale,
     ownerAlias: debate.ownerAlias,
-    memberCount: debate.memberIds.length,
+    memberCount: debate.memberCount ?? debate.memberIds?.length ?? 1,
   };
+}
+
+function mergeCommunityMembers(
+  debate: CommunityDebate,
+  memberships: CommunityMembership[],
+) {
+  const members = new Map<string, CommunityMember>();
+  for (const member of debate.members ?? []) {
+    members.set(member.userId, member);
+  }
+  for (const membership of memberships) {
+    members.set(membership.userId, {
+      userId: membership.userId,
+      alias: membership.alias,
+      role: membership.role,
+      joinedAt: membership.joinedAt,
+    });
+  }
+  return [...members.values()].sort(
+    (a, b) =>
+      new Date(a.joinedAt).getTime() - new Date(b.joinedAt).getTime(),
+  );
 }
 
 function buildFallbackViewer(): ViewerState {
@@ -736,6 +781,9 @@ export async function createCommunityDebate(
   const inviteCode = randomUUID().replaceAll("-", "");
   const debateRef = communityDebatesCollection().doc(debateId);
   const profileRef = profilesCollection().doc(userId);
+  const membershipRef = communityMembershipsCollection().doc(
+    communityMembershipId(debateId, userId),
+  );
 
   return db.runTransaction(async (transaction) => {
     const profileSnap = await transaction.get(profileRef);
@@ -754,6 +802,7 @@ export async function createCommunityDebate(
       status: "active",
       ownerId: userId,
       ownerAlias: profile.alias,
+      memberCount: 1,
       memberIds: [userId],
       members: [
         {
@@ -769,6 +818,14 @@ export async function createCommunityDebate(
     };
 
     transaction.create(debateRef, debate);
+    transaction.create(membershipRef, {
+      id: membershipRef.id,
+      debateId,
+      userId,
+      alias: profile.alias,
+      role: "host",
+      joinedAt: now,
+    } satisfies CommunityMembership);
     return debate;
   });
 }
@@ -788,10 +845,16 @@ export async function getCommunityDebateAccess(
   }
 
   const debate = debateSnap.data() as CommunityDebate;
-  if (isCommunityMember(debate.memberIds, userId)) {
-    const [argumentsSnap, commentsSnap] = await Promise.all([
+  const membershipSnap = userId
+    ? await communityMembershipsCollection()
+        .doc(communityMembershipId(debateId, userId))
+        .get()
+    : null;
+  if (hasCommunityAccess(debate, userId, Boolean(membershipSnap?.exists))) {
+    const [argumentsSnap, commentsSnap, membershipsSnap] = await Promise.all([
       communityArgumentsCollection().where("debateId", "==", debateId).get(),
       argumentCommentsCollection().where("debateId", "==", debateId).get(),
+      communityMembershipsCollection().where("debateId", "==", debateId).get(),
     ]);
 
     const debateArguments = argumentsSnap.docs
@@ -808,11 +871,15 @@ export async function getCommunityDebateAccess(
         (a, b) =>
           new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
       );
+    const memberships = membershipsSnap.docs.map(
+      (doc) => doc.data() as CommunityMembership,
+    );
 
     return {
       status: "member",
       data: {
         debate,
+        members: mergeCommunityMembers(debate, memberships),
         arguments: debateArguments,
         comments,
         viewerId: userId as string,
@@ -821,10 +888,10 @@ export async function getCommunityDebateAccess(
   }
 
   if (inviteCode && inviteCode === debate.inviteCode) {
-    const preview = communityInvitePreview(debate);
-    return debate.memberIds.length >= 2
-      ? { status: "full", debate: preview }
-      : { status: "invite", debate: preview };
+    return {
+      status: "invite",
+      debate: communityInvitePreview(debate),
+    };
   }
 
   return { status: "forbidden" };
@@ -841,9 +908,13 @@ export async function acceptCommunityInvite(
   return db.runTransaction(async (transaction) => {
     const debateRef = communityDebatesCollection().doc(debateId);
     const profileRef = profilesCollection().doc(userId);
-    const [debateSnap, profileSnap] = await Promise.all([
+    const membershipRef = communityMembershipsCollection().doc(
+      communityMembershipId(debateId, userId),
+    );
+    const [debateSnap, profileSnap, membershipSnap] = await Promise.all([
       transaction.get(debateRef),
       transaction.get(profileRef),
+      transaction.get(membershipRef),
     ]);
 
     if (!debateSnap.exists) {
@@ -854,34 +925,34 @@ export async function acceptCommunityInvite(
     }
 
     const debate = debateSnap.data() as CommunityDebate;
-    if (isCommunityMember(debate.memberIds, userId)) {
+    if (hasCommunityAccess(debate, userId, membershipSnap.exists)) {
       return debate;
     }
     if (!inviteCode || inviteCode !== debate.inviteCode) {
       throw new Error("INVALID_INVITE");
     }
-    if (debate.memberIds.length >= 2) {
-      throw new Error("DEBATE_FULL");
-    }
-
     const profile = profileSnap.data() as UserProfile;
-    const updatedDebate: CommunityDebate = {
+    const membership: CommunityMembership = {
+      id: membershipRef.id,
+      debateId,
+      userId,
+      alias: profile.alias,
+      role: "friend",
+      joinedAt: now,
+    };
+    const nextMemberCount =
+      (debate.memberCount ?? debate.memberIds?.length ?? 1) + 1;
+
+    transaction.create(membershipRef, membership);
+    transaction.update(debateRef, {
+      memberCount: nextMemberCount,
+      updatedAt: now,
+    });
+    return {
       ...debate,
-      memberIds: [...debate.memberIds, userId],
-      members: [
-        ...debate.members,
-        {
-          userId,
-          alias: profile.alias,
-          role: "friend",
-          joinedAt: now,
-        },
-      ],
+      memberCount: nextMemberCount,
       updatedAt: now,
     };
-
-    transaction.set(debateRef, updatedDebate);
-    return updatedDebate;
   });
 }
 
@@ -925,9 +996,13 @@ export async function createCommunityArgument(
   return db.runTransaction(async (transaction) => {
     const debateRef = communityDebatesCollection().doc(debateId);
     const profileRef = profilesCollection().doc(userId);
-    const [debateSnap, profileSnap] = await Promise.all([
+    const membershipRef = communityMembershipsCollection().doc(
+      communityMembershipId(debateId, userId),
+    );
+    const [debateSnap, profileSnap, membershipSnap] = await Promise.all([
       transaction.get(debateRef),
       transaction.get(profileRef),
+      transaction.get(membershipRef),
     ]);
 
     if (!debateSnap.exists) {
@@ -938,7 +1013,7 @@ export async function createCommunityArgument(
     }
 
     const debate = debateSnap.data() as CommunityDebate;
-    if (!isCommunityMember(debate.memberIds, userId)) {
+    if (!hasCommunityAccess(debate, userId, membershipSnap.exists)) {
       throw new Error("FORBIDDEN");
     }
 
@@ -994,11 +1069,16 @@ export async function addCommunityArgumentSource(
     const debateRef = communityDebatesCollection().doc(debateId);
     const argumentRef = communityArgumentsCollection().doc(argumentId);
     const profileRef = profilesCollection().doc(userId);
-    const [debateSnap, argumentSnap, profileSnap] = await Promise.all([
+    const membershipRef = communityMembershipsCollection().doc(
+      communityMembershipId(debateId, userId),
+    );
+    const [debateSnap, argumentSnap, profileSnap, membershipSnap] =
+      await Promise.all([
       transaction.get(debateRef),
       transaction.get(argumentRef),
       transaction.get(profileRef),
-    ]);
+        transaction.get(membershipRef),
+      ]);
 
     if (!debateSnap.exists || !argumentSnap.exists) {
       throw new Error("ARGUMENT_NOT_FOUND");
@@ -1013,7 +1093,7 @@ export async function addCommunityArgumentSource(
     );
     if (
       argument.debateId !== debateId ||
-      !isCommunityMember(debate.memberIds, userId)
+      !hasCommunityAccess(debate, userId, membershipSnap.exists)
     ) {
       throw new Error("FORBIDDEN");
     }
@@ -1059,11 +1139,16 @@ export async function createArgumentComment(
     const debateRef = communityDebatesCollection().doc(debateId);
     const argumentRef = communityArgumentsCollection().doc(argumentId);
     const profileRef = profilesCollection().doc(userId);
-    const [debateSnap, argumentSnap, profileSnap] = await Promise.all([
+    const membershipRef = communityMembershipsCollection().doc(
+      communityMembershipId(debateId, userId),
+    );
+    const [debateSnap, argumentSnap, profileSnap, membershipSnap] =
+      await Promise.all([
       transaction.get(debateRef),
       transaction.get(argumentRef),
       transaction.get(profileRef),
-    ]);
+        transaction.get(membershipRef),
+      ]);
 
     if (!debateSnap.exists || !argumentSnap.exists) {
       throw new Error("ARGUMENT_NOT_FOUND");
@@ -1078,7 +1163,7 @@ export async function createArgumentComment(
     );
     if (
       argument.debateId !== debateId ||
-      !isCommunityMember(debate.memberIds, userId)
+      !hasCommunityAccess(debate, userId, membershipSnap.exists)
     ) {
       throw new Error("FORBIDDEN");
     }

@@ -39,11 +39,9 @@ export async function POST(
     const status =
       message === "DEBATE_NOT_FOUND"
         ? 404
-        : message === "DEBATE_FULL"
-          ? 409
-          : ["INVALID_INVITE", "ALIAS_REQUIRED"].includes(message)
-            ? 403
-            : 500;
+        : ["INVALID_INVITE", "ALIAS_REQUIRED"].includes(message)
+          ? 403
+          : 500;
     if (status === 500) {
       console.error("Community debate invitation failed.", error);
     }

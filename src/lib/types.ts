@@ -116,6 +116,11 @@ export interface CommunityMember {
   joinedAt: string;
 }
 
+export interface CommunityMembership extends CommunityMember {
+  id: string;
+  debateId: string;
+}
+
 export interface CommunityDebate {
   id: string;
   question: string;
@@ -126,6 +131,7 @@ export interface CommunityDebate {
   status: "active";
   ownerId: string;
   ownerAlias: string;
+  memberCount: number;
   memberIds: string[];
   members: CommunityMember[];
   inviteCode: string;
@@ -178,6 +184,7 @@ export interface CommunityInvitePreview {
 
 export interface CommunityDebatePageData {
   debate: CommunityDebate;
+  members: CommunityMember[];
   arguments: CommunityArgument[];
   comments: ArgumentComment[];
   viewerId: string;
@@ -186,6 +193,5 @@ export interface CommunityDebatePageData {
 export type CommunityDebateAccess =
   | { status: "member"; data: CommunityDebatePageData }
   | { status: "invite"; debate: CommunityInvitePreview }
-  | { status: "full"; debate: CommunityInvitePreview }
   | { status: "forbidden" }
   | { status: "not-found" };

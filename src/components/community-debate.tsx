@@ -23,7 +23,6 @@ interface CommunityDebateInviteProps {
   debate: CommunityInvitePreview;
   inviteCode: string;
   isAuthenticated: boolean;
-  isFull: boolean;
 }
 
 export function CommunityDebateInvite({
@@ -31,7 +30,6 @@ export function CommunityDebateInvite({
   debate,
   inviteCode,
   isAuthenticated,
-  isFull,
 }: CommunityDebateInviteProps) {
   const copy = getCopy(locale).communityDebate;
   const router = useRouter();
@@ -74,39 +72,29 @@ export function CommunityDebateInvite({
         <p className="community-inviter">
           {copy.invitedBy} <strong>@{debate.ownerAlias}</strong>
         </p>
-        <h1>
-          {isFull ? copy.debateFullTitle : copy.inviteTitle}
-        </h1>
+        <h1>{copy.inviteTitle}</h1>
         <div className="community-invite-question">
           <span>{debate.category}</span>
           <h2>{debate.question}</h2>
           {debate.context ? <p className="rich-copy">{debate.context}</p> : null}
         </div>
-        <p className="community-invite-explainer">
-          {isFull ? copy.debateFullBody : copy.inviteBody}
-        </p>
-        {!isFull ? (
-          isAuthenticated ? (
-            <button
-              type="button"
-              className="landing-primary-cta"
-              onClick={joinDebate}
-              disabled={pending}
-            >
-              {pending ? copy.joining : copy.joinButton}
-              <span aria-hidden="true">→</span>
-            </button>
-          ) : (
-            <Link
-              href={`/${locale}/access?next=${encodeURIComponent(nextPath)}`}
-              className="landing-primary-cta"
-            >
-              {copy.signInButton}<span aria-hidden="true">→</span>
-            </Link>
-          )
+        <p className="community-invite-explainer">{copy.inviteBody}</p>
+        {isAuthenticated ? (
+          <button
+            type="button"
+            className="landing-primary-cta"
+            onClick={joinDebate}
+            disabled={pending}
+          >
+            {pending ? copy.joining : copy.joinButton}
+            <span aria-hidden="true">→</span>
+          </button>
         ) : (
-          <Link href={`/${locale}`} className="community-text-link">
-            DBYLE <span aria-hidden="true">→</span>
+          <Link
+            href={`/${locale}/access?next=${encodeURIComponent(nextPath)}`}
+            className="landing-primary-cta"
+          >
+            {copy.signInButton}<span aria-hidden="true">→</span>
           </Link>
         )}
         {error ? <p className="community-error" role="alert">{error}</p> : null}
@@ -178,8 +166,8 @@ export function CommunityDebateWorkspace({
             <span>{data.debate.ownerAlias.slice(0, 1).toUpperCase()}</span>
             <p><strong>@{data.debate.ownerAlias}</strong>{communityCopy.hostLabel}</p>
           </div>
-          {data.debate.members.find((member) => member.role === "friend") ? (
-            data.debate.members
+          {data.members.find((member) => member.role === "friend") ? (
+            data.members
               .filter((member) => member.role === "friend")
               .map((member) => (
                 <div className="community-person" key={member.userId}>
@@ -196,7 +184,7 @@ export function CommunityDebateWorkspace({
         </aside>
       </section>
 
-      {data.debate.memberIds.length < 2 ? (
+      {data.viewerId === data.debate.ownerId ? (
         <section className="community-share-panel">
           <div>
             <span className="community-share-icon" aria-hidden="true">↗</span>
