@@ -1,8 +1,7 @@
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import GoogleProvider from "next-auth/providers/google";
 import { z } from "zod";
-import { appEnv, isGoogleAuthConfigured } from "@/lib/env";
+import { appEnv } from "@/lib/env";
 import { authenticatePasswordAccount } from "@/lib/repository";
 
 const accountCredentialsSchema = z.object({
@@ -10,9 +9,7 @@ const accountCredentialsSchema = z.object({
   password: z.string().min(1).max(72),
 });
 
-type AppProvider = NonNullable<NextAuthOptions["providers"]>[number];
-
-const providers: AppProvider[] = [
+const providers: NonNullable<NextAuthOptions["providers"]> = [
   CredentialsProvider({
     id: "account",
     name: "Citizen account",
@@ -50,32 +47,6 @@ const providers: AppProvider[] = [
   }),
 ];
 
-if (isGoogleAuthConfigured()) {
-  providers.push(
-    GoogleProvider({
-      clientId: appEnv.googleClientId,
-      clientSecret: appEnv.googleClientSecret,
-      authorization: {
-        params: {
-          scope: "openid email",
-        },
-      },
-      idToken: true,
-      profile(profile) {
-        return {
-          id: profile.sub,
-          name:
-            (typeof profile.email === "string"
-              ? profile.email.split("@")[0]
-              : "Citizen") ?? "Citizen",
-          email: profile.email,
-          image: null,
-        };
-      },
-    }),
-  );
-}
-
 export const authOptions: NextAuthOptions = {
   secret: appEnv.authSecret,
   providers,
@@ -97,10 +68,7 @@ export const authOptions: NextAuthOptions = {
         token.email = profile.email;
       }
       if (account?.provider) {
-        token.provider =
-          account.type === "credentials" || account.provider === "account"
-            ? "password"
-            : account.provider;
+        token.provider = "password";
       }
       return token;
     },

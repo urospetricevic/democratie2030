@@ -39,6 +39,7 @@ import {
   type DebatePageData,
   type Locale,
   type PasswordAccountRecord,
+  type PasswordResetRecord,
   type UserProfile,
   type ViewerState,
   type VoteRecord,
@@ -66,6 +67,10 @@ function aliasesCollection() {
 
 function passwordAccountsCollection() {
   return getFirestore().collection("authAccounts");
+}
+
+function passwordResetsCollection() {
+  return getFirestore().collection("passwordResetTokens");
 }
 
 function votesCollection() {
@@ -518,6 +523,141 @@ export async function authenticatePasswordAccount(
 
   const profile = await getUserProfile(account.userId);
   return profile;
+}
+
+export async function createPasswordResetRecord(
+  emailNormalized: string,
+  requestId: string,
+  tokenHash: string,
+  expiresAt: string,
+): Promise<
+  | { status: "created"; record: PasswordResetRecord }
+  | { status: "unknown" | "rate_limited" }
+> {
+  if (!isFirestoreConfigured()) {
+    throw new Error("AUTH_UNAVAILABLE");
+  }
+
+  const db = getFirestore();
+  const now = new Date();
+  const nowIso = now.toISOString();
+
+  return db.runTransaction(async (transaction) => {
+    const accountRef = passwordAccountsCollection().doc(emailNormalized);
+    const resetRef = passwordResetsCollection().doc(requestId);
+    const [accountSnap, resetSnap] = await Promise.all([
+      transaction.get(accountRef),
+      transaction.get(resetRef),
+    ]);
+
+    if (!accountSnap.exists) {
+      return { status: "unknown" as const };
+    }
+
+    if (resetSnap.exists) {
+      const previous = resetSnap.data() as PasswordResetRecord;
+      const previousCreatedAt = new Date(previous.createdAt).getTime();
+      if (
+        Number.isFinite(previousCreatedAt) &&
+        now.getTime() - previousCreatedAt < 60_000
+      ) {
+        return { status: "rate_limited" as const };
+      }
+    }
+
+    const account = accountSnap.data() as PasswordAccountRecord;
+    const record: PasswordResetRecord = {
+      id: requestId,
+      userId: account.userId,
+      emailNormalized,
+      tokenHash,
+      expiresAt,
+      createdAt: nowIso,
+    };
+    transaction.set(resetRef, record);
+    return { status: "created" as const, record };
+  });
+}
+
+export async function discardPasswordResetRecord(
+  requestId: string,
+  tokenHash: string,
+) {
+  if (!isFirestoreConfigured()) {
+    return;
+  }
+
+  const resetRef = passwordResetsCollection().doc(requestId);
+  await getFirestore().runTransaction(async (transaction) => {
+    const resetSnap = await transaction.get(resetRef);
+    if (
+      resetSnap.exists &&
+      (resetSnap.data() as PasswordResetRecord).tokenHash === tokenHash
+    ) {
+      transaction.delete(resetRef);
+    }
+  });
+}
+
+export async function resetPasswordWithToken(
+  requestId: string,
+  tokenHash: string,
+  newPassword: string,
+): Promise<"reset" | "invalid" | "expired"> {
+  if (!isPasswordValid(newPassword)) {
+    throw new Error("INVALID_PASSWORD");
+  }
+  if (!isFirestoreConfigured()) {
+    throw new Error("AUTH_UNAVAILABLE");
+  }
+
+  const resetRef = passwordResetsCollection().doc(requestId);
+  const initialSnap = await resetRef.get();
+  if (!initialSnap.exists) {
+    return "invalid";
+  }
+
+  const initialRecord = initialSnap.data() as PasswordResetRecord;
+  if (initialRecord.tokenHash !== tokenHash) {
+    return "invalid";
+  }
+  if (new Date(initialRecord.expiresAt).getTime() <= Date.now()) {
+    await discardPasswordResetRecord(requestId, tokenHash);
+    return "expired";
+  }
+
+  const passwordHash = await hash(newPassword, PASSWORD_HASH_ROUNDS);
+  const now = new Date().toISOString();
+
+  return getFirestore().runTransaction(async (transaction) => {
+    const resetSnap = await transaction.get(resetRef);
+    if (!resetSnap.exists) {
+      return "invalid" as const;
+    }
+
+    const record = resetSnap.data() as PasswordResetRecord;
+    if (record.tokenHash !== tokenHash) {
+      return "invalid" as const;
+    }
+    if (new Date(record.expiresAt).getTime() <= Date.now()) {
+      transaction.delete(resetRef);
+      return "expired" as const;
+    }
+
+    const accountRef = passwordAccountsCollection().doc(record.emailNormalized);
+    const accountSnap = await transaction.get(accountRef);
+    if (!accountSnap.exists) {
+      transaction.delete(resetRef);
+      return "invalid" as const;
+    }
+
+    transaction.update(accountRef, {
+      passwordHash,
+      updatedAt: now,
+    });
+    transaction.delete(resetRef);
+    return "reset" as const;
+  });
 }
 
 export async function submitVote(userId: string, debateId: string, side: VoteSide) {

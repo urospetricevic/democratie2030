@@ -225,13 +225,35 @@ const copy = {
       "8 a 72 caracteres, avec au moins une lettre et un chiffre.",
     accessAutoLoginFallback:
       "Compte cree. Connectez-vous pour continuer.",
-    accessGoogleTitle: "Google en option",
-    accessGoogleBody:
-      "Si vous gardez un fournisseur externe, Google peut rester un point d'entree secondaire sans remplacer le compte principal.",
-    accessGoogleButton: "Continuer avec Google",
-    accessOptional: "Optionnel",
     accessRecommended: "Recommande",
     accessBack: "Retour a l'accueil",
+    forgotPasswordLink: "Mot de passe oublié ?",
+    forgotPasswordKicker: "Récupération du compte",
+    forgotPasswordTitle: "Retrouvez l’accès à votre compte.",
+    forgotPasswordIntro:
+      "Entrez l’email privé associé à votre compte. Nous vous enverrons un lien sécurisé valable pendant 30 minutes.",
+    forgotPasswordButton: "Envoyer le lien",
+    forgotPasswordPending: "Envoi en cours…",
+    forgotPasswordSuccessTitle: "Consultez votre boîte de réception.",
+    forgotPasswordSuccess:
+      "Si un compte correspond à cet email, un lien de réinitialisation vient d’être envoyé.",
+    forgotPasswordUnavailable:
+      "La récupération par email est temporairement indisponible.",
+    resetPasswordKicker: "Nouveau mot de passe",
+    resetPasswordTitle: "Choisissez un nouveau mot de passe.",
+    resetPasswordIntro:
+      "Votre nouveau mot de passe remplacera immédiatement l’ancien.",
+    resetPasswordButton: "Mettre à jour mon mot de passe",
+    resetPasswordPending: "Mise à jour…",
+    resetPasswordSuccessTitle: "Votre mot de passe a été modifié.",
+    resetPasswordSuccess:
+      "Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.",
+    resetPasswordSignIn: "Retour à la connexion",
+    resetPasswordInvalid:
+      "Ce lien de réinitialisation est invalide ou a déjà été utilisé.",
+    resetPasswordExpired:
+      "Ce lien a expiré. Demandez un nouveau lien de réinitialisation.",
+    resetPasswordRequestAgain: "Demander un nouveau lien",
     emailExists: "Un compte existe deja avec cet email.",
     emailInvalid: "Entrez un email valide.",
     passwordInvalid:
@@ -501,13 +523,35 @@ const copy = {
       "8 to 72 characters, with at least one letter and one number.",
     accessAutoLoginFallback:
       "Account created. Sign in to continue.",
-    accessGoogleTitle: "Google optional",
-    accessGoogleBody:
-      "If you keep an external provider, Google can remain a secondary entry point without replacing the main account flow.",
-    accessGoogleButton: "Continue with Google",
-    accessOptional: "Optional",
     accessRecommended: "Recommended",
     accessBack: "Back to home",
+    forgotPasswordLink: "Forgot password?",
+    forgotPasswordKicker: "Account recovery",
+    forgotPasswordTitle: "Get back into your account.",
+    forgotPasswordIntro:
+      "Enter the private email associated with your account. We will send a secure link that is valid for 30 minutes.",
+    forgotPasswordButton: "Send recovery link",
+    forgotPasswordPending: "Sending…",
+    forgotPasswordSuccessTitle: "Check your inbox.",
+    forgotPasswordSuccess:
+      "If an account matches that email, a password-reset link has just been sent.",
+    forgotPasswordUnavailable:
+      "Email password recovery is temporarily unavailable.",
+    resetPasswordKicker: "New password",
+    resetPasswordTitle: "Choose a new password.",
+    resetPasswordIntro:
+      "Your new password will immediately replace your old one.",
+    resetPasswordButton: "Update my password",
+    resetPasswordPending: "Updating…",
+    resetPasswordSuccessTitle: "Your password has been changed.",
+    resetPasswordSuccess:
+      "You can now sign in with your new password.",
+    resetPasswordSignIn: "Return to sign in",
+    resetPasswordInvalid:
+      "This reset link is invalid or has already been used.",
+    resetPasswordExpired:
+      "This link has expired. Request a new password-reset link.",
+    resetPasswordRequestAgain: "Request a new link",
     emailExists: "An account already exists for this email.",
     emailInvalid: "Enter a valid email address.",
     passwordInvalid:

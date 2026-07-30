@@ -12,19 +12,19 @@ export const appEnv = {
     process.env.AUTH_URL ??
     "",
   authSecret: process.env.AUTH_SECRET ?? "local-democratie2030-secret",
-  googleAuthEnabled: (process.env.AUTH_GOOGLE_ENABLED ?? "false") === "true",
-  googleClientId: process.env.AUTH_GOOGLE_ID ?? "",
-  googleClientSecret: process.env.AUTH_GOOGLE_SECRET ?? "",
+  resendApiKey: process.env.RESEND_API_KEY ?? "",
+  resetEmailFrom: process.env.RESET_EMAIL_FROM ?? "",
+  passwordResetTestMode:
+    process.env.NODE_ENV !== "production" &&
+    process.env.PASSWORD_RESET_TEST_MODE === "true",
   seedSecret: process.env.SEED_SECRET ?? "",
   adminSeedEnabled: (process.env.ADMIN_SEED_ENABLED ?? "true") !== "false",
 };
 
-export function isGoogleAuthConfigured() {
+export function isPasswordResetEmailConfigured() {
   return Boolean(
-    appEnv.googleAuthEnabled &&
-      appEnv.authSecret &&
-      appEnv.googleClientId &&
-      appEnv.googleClientSecret,
+    appEnv.passwordResetTestMode ||
+      (appEnv.appUrl && appEnv.resendApiKey && appEnv.resetEmailFrom),
   );
 }
 

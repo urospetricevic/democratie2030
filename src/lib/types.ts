@@ -72,6 +72,15 @@ export interface PasswordAccountRecord {
   updatedAt: string;
 }
 
+export interface PasswordResetRecord {
+  id: string;
+  userId: string;
+  emailNormalized: string;
+  tokenHash: string;
+  expiresAt: string;
+  createdAt: string;
+}
+
 export interface VoteRecord {
   id: string;
   debateId: string;

@@ -4,7 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { AccountAccessForm } from "@/components/account-access-form";
 import { authOptions } from "@/lib/auth";
 import { sanitizeInternalPath } from "@/lib/domain";
-import { isGoogleAuthConfigured } from "@/lib/env";
+import { isPasswordResetEmailConfigured } from "@/lib/env";
 import { getCopy, isLocale } from "@/lib/i18n";
 import { getUserProfile } from "@/lib/repository";
 import { DEBATE_SLUG, type Locale } from "@/lib/types";
@@ -84,7 +84,7 @@ export default async function AccessPage({
       <AccountAccessForm
         locale={locale}
         nextPath={nextPath}
-        googleEnabled={isGoogleAuthConfigured()}
+        passwordRecoveryEnabled={isPasswordResetEmailConfigured()}
       />
     </section>
   );

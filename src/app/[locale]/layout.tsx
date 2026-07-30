@@ -5,7 +5,6 @@ import { authOptions } from "@/lib/auth";
 import { getCopy, isLocale } from "@/lib/i18n";
 import { getUserProfile } from "@/lib/repository";
 import type { Locale } from "@/lib/types";
-import { isGoogleAuthConfigured } from "@/lib/env";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { AuthControls } from "@/components/auth-controls";
 
@@ -52,7 +51,6 @@ export default async function LocaleLayout({
             <AuthControls
               locale={locale}
               isAuthenticated={Boolean(session?.user?.id)}
-              googleEnabled={isGoogleAuthConfigured()}
               alias={profile?.alias ?? session?.user?.name ?? null}
             />
           </div>

@@ -11,7 +11,6 @@ import { getCopy } from "@/lib/i18n";
 interface AuthControlsProps {
   locale: Locale;
   isAuthenticated: boolean;
-  googleEnabled: boolean;
   alias: string | null;
   compact?: boolean;
 }
@@ -19,7 +18,6 @@ interface AuthControlsProps {
 export function AuthControls({
   locale,
   isAuthenticated,
-  googleEnabled,
   alias,
   compact = false,
 }: AuthControlsProps) {
@@ -64,7 +62,6 @@ export function AuthControls({
           >
             {dictionary.signIn}
           </Link>
-          <span className="sr-only">{googleEnabled ? dictionary.accessOptional : dictionary.accessAccountHint}</span>
         </div>
       )}
     </div>

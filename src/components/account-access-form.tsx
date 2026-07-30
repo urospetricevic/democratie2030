@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
@@ -10,7 +11,7 @@ import type { Locale } from "@/lib/types";
 interface AccountAccessFormProps {
   locale: Locale;
   nextPath: string;
-  googleEnabled: boolean;
+  passwordRecoveryEnabled: boolean;
 }
 
 function translateError(
@@ -44,7 +45,7 @@ function translateError(
 export function AccountAccessForm({
   locale,
   nextPath,
-  googleEnabled,
+  passwordRecoveryEnabled,
 }: AccountAccessFormProps) {
   const dictionary = getCopy(locale);
   const router = useRouter();
@@ -338,12 +339,22 @@ export function AccountAccessForm({
           </div>
 
           <div className="space-y-2">
-            <label
-              htmlFor="login-password"
-              className="block text-sm font-semibold text-[var(--color-ink)]"
-            >
-              {dictionary.accessPasswordLabel}
-            </label>
+            <div className="flex items-center justify-between gap-4">
+              <label
+                htmlFor="login-password"
+                className="block text-sm font-semibold text-[var(--color-ink)]"
+              >
+                {dictionary.accessPasswordLabel}
+              </label>
+              {passwordRecoveryEnabled ? (
+                <Link
+                  href={`/${locale}/forgot-password`}
+                  className="text-sm font-semibold text-[var(--color-accent)] transition hover:text-[var(--color-ink)]"
+                >
+                  {dictionary.forgotPasswordLink}
+                </Link>
+              ) : null}
+            </div>
             <input
               id="login-password"
               type="password"
@@ -374,28 +385,6 @@ export function AccountAccessForm({
             {dictionary.accessSignInButton}
           </button>
         </form>
-
-        {googleEnabled ? (
-          <div className="mt-6 border-t border-[var(--color-border)] pt-6">
-            <p className="text-sm font-semibold text-[var(--color-ink)]">
-              {dictionary.accessGoogleTitle}
-            </p>
-            <p className="mt-2 text-sm leading-7 text-[var(--color-muted-strong)]">
-              {dictionary.accessGoogleBody}
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                void signIn("google", {
-                  callbackUrl: nextPath,
-                });
-              }}
-              className="btn-secondary mt-4 w-full justify-center"
-            >
-              {dictionary.accessGoogleButton}
-            </button>
-          </div>
-        ) : null}
       </div>
     </div>
   );
