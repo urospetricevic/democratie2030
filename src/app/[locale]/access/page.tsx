@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
 import { AccountAccessForm } from "@/components/account-access-form";
 import { authOptions } from "@/lib/auth";
+import { sanitizeInternalPath } from "@/lib/domain";
 import { isGoogleAuthConfigured } from "@/lib/env";
 import { getCopy, isLocale } from "@/lib/i18n";
 import { getUserProfile } from "@/lib/repository";
@@ -11,11 +12,10 @@ import { DEBATE_SLUG, type Locale } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 function sanitizeNextPath(input: string | undefined, locale: Locale) {
-  if (!input || !input.startsWith("/")) {
-    return `/${locale}/debates/${DEBATE_SLUG}`;
-  }
-
-  return input;
+  return sanitizeInternalPath(
+    input,
+    `/${locale}/debates/${DEBATE_SLUG}`,
+  );
 }
 
 export default async function AccessPage({

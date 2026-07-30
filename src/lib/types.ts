@@ -108,3 +108,84 @@ export interface DebatePageData {
   viewer: ViewerState;
   source: "firestore" | "fallback";
 }
+
+export interface CommunityMember {
+  userId: string;
+  alias: string;
+  role: "host" | "friend";
+  joinedAt: string;
+}
+
+export interface CommunityDebate {
+  id: string;
+  question: string;
+  context: string;
+  category: string;
+  locale: Locale;
+  visibility: "private";
+  status: "active";
+  ownerId: string;
+  ownerAlias: string;
+  memberIds: string[];
+  members: CommunityMember[];
+  inviteCode: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ArgumentSource {
+  id: string;
+  label: string;
+  url: string;
+  addedBy: string;
+  addedByAlias: string;
+  createdAt: string;
+}
+
+export interface CommunityArgument {
+  id: string;
+  debateId: string;
+  side: VoteSide;
+  authorId: string;
+  authorAlias: string;
+  title: string;
+  body: string;
+  sources: ArgumentSource[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ArgumentComment {
+  id: string;
+  debateId: string;
+  argumentId: string;
+  authorId: string;
+  authorAlias: string;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CommunityInvitePreview {
+  id: string;
+  question: string;
+  context: string;
+  category: string;
+  locale: Locale;
+  ownerAlias: string;
+  memberCount: number;
+}
+
+export interface CommunityDebatePageData {
+  debate: CommunityDebate;
+  arguments: CommunityArgument[];
+  comments: ArgumentComment[];
+  viewerId: string;
+}
+
+export type CommunityDebateAccess =
+  | { status: "member"; data: CommunityDebatePageData }
+  | { status: "invite"; debate: CommunityInvitePreview }
+  | { status: "full"; debate: CommunityInvitePreview }
+  | { status: "forbidden" }
+  | { status: "not-found" };

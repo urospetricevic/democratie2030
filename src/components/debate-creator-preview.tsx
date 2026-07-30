@@ -1,22 +1,69 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { getCopy } from "@/lib/i18n";
 import type { Locale } from "@/lib/types";
 
-export function DebateCreatorPreview({ locale }: { locale: Locale }) {
+export function DebateCreatorPreview({
+  locale,
+  isAuthenticated,
+}: {
+  locale: Locale;
+  isAuthenticated: boolean;
+}) {
   const copy = getCopy(locale);
+  const communityCopy = copy.communityDebate;
+  const router = useRouter();
   const [question, setQuestion] = useState("");
   const [context, setContext] = useState("");
   const [category, setCategory] = useState<string>(copy.creatorCategories[0]);
-  const [visibility, setVisibility] = useState("public");
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState("");
   const previewQuestion = question.trim() || copy.creatorExampleQuestion;
   const previewContext = context.trim() || copy.creatorExampleContext;
 
+  async function submitDebate(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError("");
+
+    if (!isAuthenticated) {
+      router.push(
+        `/${locale}/access?next=${encodeURIComponent(`/${locale}/create`)}`,
+      );
+      return;
+    }
+    if (question.trim().length < 12) {
+      setError(communityCopy.questionTooShort);
+      return;
+    }
+
+    setPending(true);
+    try {
+      const response = await fetch("/api/community-debates", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question, context, category, locale }),
+      });
+      const payload = (await response.json()) as {
+        id?: string;
+        error?: string;
+      };
+      if (!response.ok || !payload.id) {
+        throw new Error(payload.error ?? "CREATE_FAILED");
+      }
+      router.push(`/${locale}/community/${payload.id}`);
+      router.refresh();
+    } catch {
+      setError(communityCopy.createError);
+      setPending(false);
+    }
+  }
+
   return (
     <div className="creator-studio">
-      <form className="creator-form" onSubmit={(event) => event.preventDefault()}>
+      <form className="creator-form" onSubmit={submitDebate}>
         <div className="creator-form-intro">
           <p className="section-label">{copy.creatorStepLabel}</p>
           <h2>{copy.creatorFormTitle}</h2>
@@ -45,51 +92,53 @@ export function DebateCreatorPreview({ locale }: { locale: Locale }) {
           <small>{context.length} / 600</small>
         </label>
 
-        <div className="creator-field-row">
-          <label className="creator-field">
-            <span>{copy.creatorCategoryLabel}</span>
-            <select value={category} onChange={(event) => setCategory(event.target.value)}>
-              {copy.creatorCategories.map((option) => <option key={option}>{option}</option>)}
-            </select>
-          </label>
-          <label className="creator-field">
-            <span>{copy.creatorVisibilityLabel}</span>
-            <select value={visibility} onChange={(event) => setVisibility(event.target.value)}>
-              <option value="public">{copy.creatorVisibilityPublic}</option>
-              <option value="community">{copy.creatorVisibilityCommunity}</option>
-            </select>
-          </label>
-        </div>
+        <label className="creator-field">
+          <span>{copy.creatorCategoryLabel}</span>
+          <select value={category} onChange={(event) => setCategory(event.target.value)}>
+            {copy.creatorCategories.map((option) => <option key={option}>{option}</option>)}
+          </select>
+        </label>
 
         <label className="creator-ai-option">
-          <input type="checkbox" defaultChecked />
-          <span className="creator-ai-check" aria-hidden="true">✓</span>
+          <span className="creator-private-icon" aria-hidden="true">↗</span>
           <span>
-            <strong>{copy.creatorAiLabel}</strong>
-            <small>{copy.creatorAiBody}</small>
+            <strong>{communityCopy.privateAudience}</strong>
+            <small>{communityCopy.privatePromise}</small>
           </span>
         </label>
 
         <div className="creator-form-footer">
           <p><span>{copy.previewLabel}</span>{copy.creatorPublishNote}</p>
-          <Link
-            href={`/${locale}/access?next=${encodeURIComponent(`/${locale}/create`)}`}
-            className="landing-primary-cta"
-          >
-            {copy.creatorJoinBeta}<span aria-hidden="true">→</span>
-          </Link>
+          {isAuthenticated ? (
+            <button
+              type="submit"
+              className="landing-primary-cta"
+              disabled={pending}
+            >
+              {pending ? communityCopy.creating : communityCopy.createButton}
+              <span aria-hidden="true">→</span>
+            </button>
+          ) : (
+            <Link
+              href={`/${locale}/access?next=${encodeURIComponent(`/${locale}/create`)}`}
+              className="landing-primary-cta"
+            >
+              {communityCopy.signInToCreate}<span aria-hidden="true">→</span>
+            </Link>
+          )}
         </div>
+        {error ? <p className="creator-error" role="alert">{error}</p> : null}
       </form>
 
       <aside className="creator-preview-panel">
         <div className="creator-preview-browser">
           <span /><span /><span />
-          <p>dbyle.com/{locale}/debates/...</p>
+          <p>dbyle.com/{locale}/community/...</p>
         </div>
         <div className="creator-preview-content">
           <div className="creator-preview-topline">
             <span>{copy.previewLabel}</span>
-            <span>{visibility === "public" ? copy.creatorVisibilityPublic : copy.creatorVisibilityCommunity}</span>
+            <span>{communityCopy.privateAudience}</span>
           </div>
           <p className="section-label">{category}</p>
           <h3>{previewQuestion}</h3>

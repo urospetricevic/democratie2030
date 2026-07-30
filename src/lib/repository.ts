@@ -5,10 +5,15 @@ import {
   clampCommentBody,
   computeSocietalPulse,
   computeVoteTotals,
+  isCommunityMember,
   isAliasValid,
   isEmailValid,
   isPasswordValid,
+  isValidSourceUrl,
   normalizeAlias,
+  normalizeCommunityCategory,
+  normalizeCommunityQuestion,
+  normalizeCommunityText,
   normalizeEmail,
   sortCommentsByRecency,
   sortCommentsBySupport,
@@ -18,11 +23,18 @@ import { getFirestore } from "@/lib/firestore";
 import { generateDebateSeed } from "@/lib/seed";
 import {
   DEBATE_SLUG,
+  type ArgumentComment,
+  type ArgumentSource,
   type AuthProvider,
   type CommentRecord,
+  type CommunityArgument,
+  type CommunityDebate,
+  type CommunityDebateAccess,
+  type CommunityInvitePreview,
   type Debate,
   type DebateAggregate,
   type DebatePageData,
+  type Locale,
   type PasswordAccountRecord,
   type UserProfile,
   type ViewerState,
@@ -63,6 +75,18 @@ function commentsCollection() {
 
 function commentUpvotesCollection() {
   return getFirestore().collection("commentUpvotes");
+}
+
+function communityDebatesCollection() {
+  return getFirestore().collection("communityDebates");
+}
+
+function communityArgumentsCollection() {
+  return getFirestore().collection("communityArguments");
+}
+
+function argumentCommentsCollection() {
+  return getFirestore().collection("argumentComments");
 }
 
 function createDefaultAggregate(debateId: string): DebateAggregate {
@@ -126,6 +150,54 @@ function mapComment(value: Partial<CommentRecord>): CommentRecord {
     isSimulated: value.isSimulated ?? false,
     createdAt: value.createdAt ?? new Date().toISOString(),
     updatedAt: value.updatedAt ?? new Date().toISOString(),
+  };
+}
+
+function mapCommunityArgument(
+  value: Partial<CommunityArgument>,
+): CommunityArgument {
+  const now = new Date().toISOString();
+  return {
+    id: value.id ?? randomUUID(),
+    debateId: value.debateId ?? "",
+    side: value.side === "no" ? "no" : "yes",
+    authorId: value.authorId ?? "",
+    authorAlias: value.authorAlias ?? "citizen",
+    title: value.title ?? "",
+    body: value.body ?? "",
+    sources: value.sources ?? [],
+    createdAt: value.createdAt ?? now,
+    updatedAt: value.updatedAt ?? now,
+  };
+}
+
+function mapArgumentComment(
+  value: Partial<ArgumentComment>,
+): ArgumentComment {
+  const now = new Date().toISOString();
+  return {
+    id: value.id ?? randomUUID(),
+    debateId: value.debateId ?? "",
+    argumentId: value.argumentId ?? "",
+    authorId: value.authorId ?? "",
+    authorAlias: value.authorAlias ?? "citizen",
+    body: value.body ?? "",
+    createdAt: value.createdAt ?? now,
+    updatedAt: value.updatedAt ?? now,
+  };
+}
+
+function communityInvitePreview(
+  debate: CommunityDebate,
+): CommunityInvitePreview {
+  return {
+    id: debate.id,
+    question: debate.question,
+    context: debate.context,
+    category: debate.category,
+    locale: debate.locale,
+    ownerAlias: debate.ownerAlias,
+    memberCount: debate.memberIds.length,
   };
 }
 
@@ -630,6 +702,402 @@ export async function toggleCommentUpvote(userId: string, commentId: string) {
       },
       { merge: true },
     );
+  });
+}
+
+export async function createCommunityDebate(
+  userId: string,
+  input: {
+    question: string;
+    context: string;
+    category: string;
+    locale: Locale;
+  },
+) {
+  if (!isFirestoreConfigured()) {
+    throw new Error("COMMUNITY_DEBATES_UNAVAILABLE");
+  }
+
+  const question = normalizeCommunityQuestion(input.question);
+  const context = normalizeCommunityText(input.context, 1200);
+  const category = normalizeCommunityCategory(input.category);
+
+  if (question.length < 12) {
+    throw new Error("QUESTION_TOO_SHORT");
+  }
+
+  if (category.length < 2 || !["fr", "en"].includes(input.locale)) {
+    throw new Error("INVALID_DEBATE");
+  }
+
+  const db = getFirestore();
+  const now = new Date().toISOString();
+  const debateId = randomUUID();
+  const inviteCode = randomUUID().replaceAll("-", "");
+  const debateRef = communityDebatesCollection().doc(debateId);
+  const profileRef = profilesCollection().doc(userId);
+
+  return db.runTransaction(async (transaction) => {
+    const profileSnap = await transaction.get(profileRef);
+    if (!profileSnap.exists) {
+      throw new Error("ALIAS_REQUIRED");
+    }
+
+    const profile = profileSnap.data() as UserProfile;
+    const debate: CommunityDebate = {
+      id: debateId,
+      question,
+      context,
+      category,
+      locale: input.locale,
+      visibility: "private",
+      status: "active",
+      ownerId: userId,
+      ownerAlias: profile.alias,
+      memberIds: [userId],
+      members: [
+        {
+          userId,
+          alias: profile.alias,
+          role: "host",
+          joinedAt: now,
+        },
+      ],
+      inviteCode,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    transaction.create(debateRef, debate);
+    return debate;
+  });
+}
+
+export async function getCommunityDebateAccess(
+  debateId: string,
+  userId?: string | null,
+  inviteCode?: string | null,
+): Promise<CommunityDebateAccess> {
+  if (!isFirestoreConfigured()) {
+    return { status: "not-found" };
+  }
+
+  const debateSnap = await communityDebatesCollection().doc(debateId).get();
+  if (!debateSnap.exists) {
+    return { status: "not-found" };
+  }
+
+  const debate = debateSnap.data() as CommunityDebate;
+  if (isCommunityMember(debate.memberIds, userId)) {
+    const [argumentsSnap, commentsSnap] = await Promise.all([
+      communityArgumentsCollection().where("debateId", "==", debateId).get(),
+      argumentCommentsCollection().where("debateId", "==", debateId).get(),
+    ]);
+
+    const debateArguments = argumentsSnap.docs
+      .map((doc) =>
+        mapCommunityArgument(doc.data() as Partial<CommunityArgument>),
+      )
+      .sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      );
+    const comments = commentsSnap.docs
+      .map((doc) => mapArgumentComment(doc.data() as Partial<ArgumentComment>))
+      .sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+      );
+
+    return {
+      status: "member",
+      data: {
+        debate,
+        arguments: debateArguments,
+        comments,
+        viewerId: userId as string,
+      },
+    };
+  }
+
+  if (inviteCode && inviteCode === debate.inviteCode) {
+    const preview = communityInvitePreview(debate);
+    return debate.memberIds.length >= 2
+      ? { status: "full", debate: preview }
+      : { status: "invite", debate: preview };
+  }
+
+  return { status: "forbidden" };
+}
+
+export async function acceptCommunityInvite(
+  userId: string,
+  debateId: string,
+  inviteCode: string,
+) {
+  const db = getFirestore();
+  const now = new Date().toISOString();
+
+  return db.runTransaction(async (transaction) => {
+    const debateRef = communityDebatesCollection().doc(debateId);
+    const profileRef = profilesCollection().doc(userId);
+    const [debateSnap, profileSnap] = await Promise.all([
+      transaction.get(debateRef),
+      transaction.get(profileRef),
+    ]);
+
+    if (!debateSnap.exists) {
+      throw new Error("DEBATE_NOT_FOUND");
+    }
+    if (!profileSnap.exists) {
+      throw new Error("ALIAS_REQUIRED");
+    }
+
+    const debate = debateSnap.data() as CommunityDebate;
+    if (isCommunityMember(debate.memberIds, userId)) {
+      return debate;
+    }
+    if (!inviteCode || inviteCode !== debate.inviteCode) {
+      throw new Error("INVALID_INVITE");
+    }
+    if (debate.memberIds.length >= 2) {
+      throw new Error("DEBATE_FULL");
+    }
+
+    const profile = profileSnap.data() as UserProfile;
+    const updatedDebate: CommunityDebate = {
+      ...debate,
+      memberIds: [...debate.memberIds, userId],
+      members: [
+        ...debate.members,
+        {
+          userId,
+          alias: profile.alias,
+          role: "friend",
+          joinedAt: now,
+        },
+      ],
+      updatedAt: now,
+    };
+
+    transaction.set(debateRef, updatedDebate);
+    return updatedDebate;
+  });
+}
+
+export async function createCommunityArgument(
+  userId: string,
+  debateId: string,
+  input: {
+    side: VoteSide;
+    title: string;
+    body: string;
+    sourceLabel?: string;
+    sourceUrl?: string;
+  },
+) {
+  const title = normalizeCommunityQuestion(input.title).slice(0, 140);
+  const body = normalizeCommunityText(input.body, 2400);
+  const sourceLabel = normalizeCommunityQuestion(input.sourceLabel ?? "").slice(
+    0,
+    160,
+  );
+  const sourceUrl = (input.sourceUrl ?? "").trim();
+  const hasPartialSource = Boolean(sourceLabel || sourceUrl);
+
+  if (title.length < 3 || body.length < 8) {
+    throw new Error("INVALID_ARGUMENT");
+  }
+  if (!["yes", "no"].includes(input.side)) {
+    throw new Error("INVALID_SIDE");
+  }
+  if (
+    hasPartialSource &&
+    (sourceLabel.length < 2 || !isValidSourceUrl(sourceUrl))
+  ) {
+    throw new Error("INVALID_SOURCE");
+  }
+
+  const db = getFirestore();
+  const now = new Date().toISOString();
+  const argumentId = randomUUID();
+
+  return db.runTransaction(async (transaction) => {
+    const debateRef = communityDebatesCollection().doc(debateId);
+    const profileRef = profilesCollection().doc(userId);
+    const [debateSnap, profileSnap] = await Promise.all([
+      transaction.get(debateRef),
+      transaction.get(profileRef),
+    ]);
+
+    if (!debateSnap.exists) {
+      throw new Error("DEBATE_NOT_FOUND");
+    }
+    if (!profileSnap.exists) {
+      throw new Error("ALIAS_REQUIRED");
+    }
+
+    const debate = debateSnap.data() as CommunityDebate;
+    if (!isCommunityMember(debate.memberIds, userId)) {
+      throw new Error("FORBIDDEN");
+    }
+
+    const profile = profileSnap.data() as UserProfile;
+    const sources: ArgumentSource[] = hasPartialSource
+      ? [
+          {
+            id: randomUUID(),
+            label: sourceLabel,
+            url: sourceUrl,
+            addedBy: userId,
+            addedByAlias: profile.alias,
+            createdAt: now,
+          },
+        ]
+      : [];
+    const argument: CommunityArgument = {
+      id: argumentId,
+      debateId,
+      side: input.side,
+      authorId: userId,
+      authorAlias: profile.alias,
+      title,
+      body,
+      sources,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    transaction.create(communityArgumentsCollection().doc(argumentId), argument);
+    transaction.update(debateRef, { updatedAt: now });
+    return argument;
+  });
+}
+
+export async function addCommunityArgumentSource(
+  userId: string,
+  debateId: string,
+  argumentId: string,
+  input: { label: string; url: string },
+) {
+  const label = normalizeCommunityQuestion(input.label).slice(0, 160);
+  const url = input.url.trim();
+
+  if (label.length < 2 || !isValidSourceUrl(url)) {
+    throw new Error("INVALID_SOURCE");
+  }
+
+  const db = getFirestore();
+  const now = new Date().toISOString();
+
+  return db.runTransaction(async (transaction) => {
+    const debateRef = communityDebatesCollection().doc(debateId);
+    const argumentRef = communityArgumentsCollection().doc(argumentId);
+    const profileRef = profilesCollection().doc(userId);
+    const [debateSnap, argumentSnap, profileSnap] = await Promise.all([
+      transaction.get(debateRef),
+      transaction.get(argumentRef),
+      transaction.get(profileRef),
+    ]);
+
+    if (!debateSnap.exists || !argumentSnap.exists) {
+      throw new Error("ARGUMENT_NOT_FOUND");
+    }
+    if (!profileSnap.exists) {
+      throw new Error("ALIAS_REQUIRED");
+    }
+
+    const debate = debateSnap.data() as CommunityDebate;
+    const argument = mapCommunityArgument(
+      argumentSnap.data() as Partial<CommunityArgument>,
+    );
+    if (
+      argument.debateId !== debateId ||
+      !isCommunityMember(debate.memberIds, userId)
+    ) {
+      throw new Error("FORBIDDEN");
+    }
+    if (argument.sources.length >= 8) {
+      throw new Error("SOURCE_LIMIT");
+    }
+
+    const profile = profileSnap.data() as UserProfile;
+    const source: ArgumentSource = {
+      id: randomUUID(),
+      label,
+      url,
+      addedBy: userId,
+      addedByAlias: profile.alias,
+      createdAt: now,
+    };
+
+    transaction.update(argumentRef, {
+      sources: [...argument.sources, source],
+      updatedAt: now,
+    });
+    transaction.update(debateRef, { updatedAt: now });
+    return source;
+  });
+}
+
+export async function createArgumentComment(
+  userId: string,
+  debateId: string,
+  argumentId: string,
+  rawBody: string,
+) {
+  const body = clampCommentBody(rawBody);
+  if (body.length < 2) {
+    throw new Error("COMMENT_TOO_SHORT");
+  }
+
+  const db = getFirestore();
+  const now = new Date().toISOString();
+  const commentId = randomUUID();
+
+  return db.runTransaction(async (transaction) => {
+    const debateRef = communityDebatesCollection().doc(debateId);
+    const argumentRef = communityArgumentsCollection().doc(argumentId);
+    const profileRef = profilesCollection().doc(userId);
+    const [debateSnap, argumentSnap, profileSnap] = await Promise.all([
+      transaction.get(debateRef),
+      transaction.get(argumentRef),
+      transaction.get(profileRef),
+    ]);
+
+    if (!debateSnap.exists || !argumentSnap.exists) {
+      throw new Error("ARGUMENT_NOT_FOUND");
+    }
+    if (!profileSnap.exists) {
+      throw new Error("ALIAS_REQUIRED");
+    }
+
+    const debate = debateSnap.data() as CommunityDebate;
+    const argument = mapCommunityArgument(
+      argumentSnap.data() as Partial<CommunityArgument>,
+    );
+    if (
+      argument.debateId !== debateId ||
+      !isCommunityMember(debate.memberIds, userId)
+    ) {
+      throw new Error("FORBIDDEN");
+    }
+
+    const profile = profileSnap.data() as UserProfile;
+    const comment: ArgumentComment = {
+      id: commentId,
+      debateId,
+      argumentId,
+      authorId: userId,
+      authorAlias: profile.alias,
+      body,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    transaction.create(argumentCommentsCollection().doc(commentId), comment);
+    transaction.update(debateRef, { updatedAt: now });
+    return comment;
   });
 }
 

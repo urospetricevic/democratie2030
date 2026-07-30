@@ -3,10 +3,14 @@ import {
   clampCommentBody,
   computeSocietalPulse,
   computeVoteTotals,
+  isCommunityMember,
   isEmailValid,
   isPasswordValid,
+  isValidSourceUrl,
   normalizeAlias,
+  normalizeCommunityQuestion,
   normalizeEmail,
+  sanitizeInternalPath,
   sortCommentsBySupport,
 } from "./domain";
 import type { CommentRecord } from "./types";
@@ -158,5 +162,33 @@ describe("sortCommentsBySupport", () => {
 describe("clampCommentBody", () => {
   it("trims and collapses whitespace", () => {
     expect(clampCommentBody("  un   texte   propre  ")).toBe("un texte propre");
+  });
+});
+
+describe("community debate input", () => {
+  it("normalizes a debate question without removing punctuation", () => {
+    expect(normalizeCommunityQuestion("  Should   Québec be a country?  ")).toBe(
+      "Should Québec be a country?",
+    );
+  });
+
+  it("only accepts HTTP sources", () => {
+    expect(isValidSourceUrl("https://www150.statcan.gc.ca/example")).toBe(true);
+    expect(isValidSourceUrl("javascript:alert(1)")).toBe(false);
+    expect(isValidSourceUrl("not a url")).toBe(false);
+  });
+
+  it("recognizes invited members", () => {
+    expect(isCommunityMember(["host", "friend"], "friend")).toBe(true);
+    expect(isCommunityMember(["host", "friend"], "stranger")).toBe(false);
+  });
+});
+
+describe("sanitizeInternalPath", () => {
+  it("preserves an internal invite path and rejects external redirects", () => {
+    const invitePath = "/en/community/debate-1?invite=secret";
+    expect(sanitizeInternalPath(invitePath, "/en")).toBe(invitePath);
+    expect(sanitizeInternalPath("//example.com", "/en")).toBe("/en");
+    expect(sanitizeInternalPath("/\\example.com", "/en")).toBe("/en");
   });
 });

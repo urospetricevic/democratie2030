@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import clsx from "clsx";
 import { SUPPORTED_LOCALES, type Locale } from "@/lib/types";
 
@@ -20,13 +20,15 @@ function buildHref(pathname: string, nextLocale: Locale) {
 
 export function LanguageSwitcher({ locale }: LanguageSwitcherProps) {
   const pathname = usePathname() || `/${locale}`;
+  const searchParams = useSearchParams();
+  const query = searchParams.toString();
 
   return (
     <div className="language-switcher">
       {SUPPORTED_LOCALES.map((option) => (
         <Link
           key={option}
-          href={buildHref(pathname, option)}
+          href={`${buildHref(pathname, option)}${query ? `?${query}` : ""}`}
           className={clsx(
             "px-3 py-2 text-sm font-bold transition",
             option === locale

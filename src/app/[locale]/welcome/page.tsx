@@ -1,6 +1,7 @@
 import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
+import { sanitizeInternalPath } from "@/lib/domain";
 import { getCopy, isLocale } from "@/lib/i18n";
 import { DEBATE_SLUG, type Locale } from "@/lib/types";
 import { getUserProfile } from "@/lib/repository";
@@ -23,8 +24,10 @@ export default async function WelcomePage({
   const locale = rawLocale as Locale;
   const dictionary = getCopy(locale);
   const session = await getServerSession(authOptions);
-  const nextPath =
-    (await searchParams).next ?? `/${locale}/debates/${DEBATE_SLUG}`;
+  const nextPath = sanitizeInternalPath(
+    (await searchParams).next,
+    `/${locale}/debates/${DEBATE_SLUG}`,
+  );
 
   if (!session?.user?.id || !session.user.email) {
     redirect(`/${locale}`);

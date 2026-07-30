@@ -43,6 +43,51 @@ export function clampCommentBody(input: string) {
   return input.trim().replace(/\s+/g, " ").slice(0, 1200);
 }
 
+export function normalizeCommunityQuestion(input: string) {
+  return input.trim().replace(/\s+/g, " ").slice(0, 180);
+}
+
+export function normalizeCommunityCategory(input: string) {
+  return input.trim().replace(/\s+/g, " ").slice(0, 50);
+}
+
+export function normalizeCommunityText(input: string, maxLength: number) {
+  return input.trim().replace(/\r\n/g, "\n").slice(0, maxLength);
+}
+
+export function isValidSourceUrl(input: string) {
+  if (input.length > 2048) {
+    return false;
+  }
+
+  try {
+    const url = new URL(input);
+    return url.protocol === "https:" || url.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+export function isCommunityMember(memberIds: string[], userId?: string | null) {
+  return Boolean(userId && memberIds.includes(userId));
+}
+
+export function sanitizeInternalPath(
+  input: string | undefined,
+  fallback: string,
+) {
+  if (
+    !input ||
+    !input.startsWith("/") ||
+    input.startsWith("//") ||
+    input.includes("\\")
+  ) {
+    return fallback;
+  }
+
+  return input;
+}
+
 export function sortCommentsBySupport(comments: CommentRecord[]) {
   return [...comments].sort((a, b) => {
     if (b.upvoteCount !== a.upvoteCount) {
