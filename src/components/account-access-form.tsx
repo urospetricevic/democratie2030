@@ -99,48 +99,52 @@ export function AccountAccessForm({
             }
 
             startRegisterTransition(async () => {
-              const response = await fetch("/api/auth/register", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  alias: registerForm.alias,
+              try {
+                const response = await fetch("/api/auth/register", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify({
+                    alias: registerForm.alias,
+                    email: normalizeEmail(registerForm.email),
+                    password: registerForm.password,
+                    confirmPassword: registerForm.confirmPassword,
+                  }),
+                });
+
+                if (!response.ok) {
+                  const payload = (await response.json().catch(() => null)) as
+                    | { error?: string }
+                    | null;
+                  setRegisterMessage(
+                    translateError(payload?.error, dictionary) ??
+                      dictionary.registrationFailed,
+                  );
+                  return;
+                }
+
+                const result = await signIn("account", {
                   email: normalizeEmail(registerForm.email),
                   password: registerForm.password,
-                  confirmPassword: registerForm.confirmPassword,
-                }),
-              });
-
-              if (!response.ok) {
-                const payload = (await response.json().catch(() => null)) as
-                  | { error?: string }
-                  | null;
-                setRegisterMessage(
-                  translateError(payload?.error, dictionary) ??
-                    dictionary.registrationFailed,
-                );
-                return;
-              }
-
-              const result = await signIn("account", {
-                email: normalizeEmail(registerForm.email),
-                password: registerForm.password,
-                callbackUrl: nextPath,
-                redirect: false,
-              });
-
-              if (!result || result.error) {
-                setRegisterMessage(dictionary.accessAutoLoginFallback);
-                setLoginForm({
-                  email: normalizeEmail(registerForm.email),
-                  password: "",
+                  callbackUrl: nextPath,
+                  redirect: false,
                 });
-                return;
-              }
 
-              router.push(nextPath);
-              router.refresh();
+                if (!result || result.error) {
+                  setRegisterMessage(dictionary.accessAutoLoginFallback);
+                  setLoginForm({
+                    email: normalizeEmail(registerForm.email),
+                    password: "",
+                  });
+                  return;
+                }
+
+                router.push(nextPath);
+                router.refresh();
+              } catch {
+                setRegisterMessage(dictionary.registrationFailed);
+              }
             });
           }}
         >
@@ -162,8 +166,10 @@ export function AccountAccessForm({
                   }))
                 }
                 placeholder="citoyen2030"
+                minLength={3}
                 maxLength={24}
                 autoComplete="nickname"
+                required
                 className="w-full rounded-[1.25rem] border border-white/14 bg-white/8 px-4 py-3 text-base text-white outline-none transition placeholder:text-white/45 focus:border-[var(--color-highlight)] focus:bg-white/10"
               />
             </div>
@@ -186,6 +192,7 @@ export function AccountAccessForm({
                 }
                 placeholder={emailPlaceholder}
                 autoComplete="email"
+                required
                 className="w-full rounded-[1.25rem] border border-white/14 bg-white/8 px-4 py-3 text-base text-white outline-none transition placeholder:text-white/45 focus:border-[var(--color-highlight)] focus:bg-white/10"
               />
             </div>
@@ -209,7 +216,10 @@ export function AccountAccessForm({
                     password: event.target.value,
                   }))
                 }
+                minLength={8}
+                maxLength={72}
                 autoComplete="new-password"
+                required
                 className="w-full rounded-[1.25rem] border border-white/14 bg-white/8 px-4 py-3 text-base text-white outline-none transition focus:border-[var(--color-highlight)] focus:bg-white/10"
               />
             </div>
@@ -230,7 +240,10 @@ export function AccountAccessForm({
                     confirmPassword: event.target.value,
                   }))
                 }
+                minLength={8}
+                maxLength={72}
                 autoComplete="new-password"
+                required
                 className="w-full rounded-[1.25rem] border border-white/14 bg-white/8 px-4 py-3 text-base text-white outline-none transition focus:border-[var(--color-highlight)] focus:bg-white/10"
               />
             </div>
@@ -279,20 +292,24 @@ export function AccountAccessForm({
             setLoginMessage(null);
 
             startLoginTransition(async () => {
-              const result = await signIn("account", {
-                email: normalizeEmail(loginForm.email),
-                password: loginForm.password,
-                callbackUrl: nextPath,
-                redirect: false,
-              });
+              try {
+                const result = await signIn("account", {
+                  email: normalizeEmail(loginForm.email),
+                  password: loginForm.password,
+                  callbackUrl: nextPath,
+                  redirect: false,
+                });
 
-              if (!result || result.error) {
-                setLoginMessage(dictionary.loginInvalid);
-                return;
+                if (!result || result.error) {
+                  setLoginMessage(dictionary.loginInvalid);
+                  return;
+                }
+
+                router.push(nextPath);
+                router.refresh();
+              } catch {
+                setLoginMessage(dictionary.loginFailed);
               }
-
-              router.push(nextPath);
-              router.refresh();
             });
           }}
         >
@@ -315,6 +332,7 @@ export function AccountAccessForm({
               }
               placeholder={emailPlaceholder}
               autoComplete="email"
+              required
               className="w-full rounded-[1.25rem] border border-[var(--color-border)] bg-white px-4 py-3 text-[var(--color-ink)] outline-none transition focus:border-[var(--color-accent)]"
             />
           </div>
@@ -337,6 +355,7 @@ export function AccountAccessForm({
                 }))
               }
               autoComplete="current-password"
+              required
               className="w-full rounded-[1.25rem] border border-[var(--color-border)] bg-white px-4 py-3 text-[var(--color-ink)] outline-none transition focus:border-[var(--color-accent)]"
             />
           </div>

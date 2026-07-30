@@ -190,6 +190,17 @@ export interface CommunityDebatePageData {
   viewerId: string;
 }
 
+export interface CommunityDebateListItem {
+  id: string;
+  question: string;
+  context: string;
+  category: string;
+  locale: Locale;
+  role: "host" | "friend";
+  memberCount: number;
+  updatedAt: string;
+}
+
 export type CommunityDebateAccess =
   | { status: "member"; data: CommunityDebatePageData }
   | { status: "invite"; debate: CommunityInvitePreview }

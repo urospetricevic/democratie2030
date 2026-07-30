@@ -40,6 +40,9 @@ export default async function LocaleLayout({
             <Link href={`/${locale}`}>{dictionary.navExplore}</Link>
             <Link href={`/${locale}#platform`}>{dictionary.navPlatform}</Link>
             <Link href={`/${locale}#vision`}>{dictionary.navVision}</Link>
+            {session?.user?.id ? (
+              <Link href={`/${locale}/portal`}>{dictionary.portal.navLabel}</Link>
+            ) : null}
           </nav>
           <div className="header-actions">
             <LanguageSwitcher locale={locale} />
@@ -64,6 +67,9 @@ export default async function LocaleLayout({
           <nav aria-label="Footer navigation">
             <Link href={`/${locale}`}>{dictionary.navExplore}</Link>
             <Link href={`/${locale}/create`}>{dictionary.createDebate}</Link>
+            {session?.user?.id ? (
+              <Link href={`/${locale}/portal`}>{dictionary.portal.navLabel}</Link>
+            ) : null}
             <Link href={`/${locale}#vision`}>{dictionary.navVision}</Link>
           </nav>
           <p className="footer-ai">{dictionary.aiInfrastructure}</p>

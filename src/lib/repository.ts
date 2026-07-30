@@ -30,6 +30,7 @@ import {
   type CommunityArgument,
   type CommunityDebate,
   type CommunityDebateAccess,
+  type CommunityDebateListItem,
   type CommunityInvitePreview,
   type CommunityMember,
   type CommunityMembership,
@@ -895,6 +896,70 @@ export async function getCommunityDebateAccess(
   }
 
   return { status: "forbidden" };
+}
+
+export async function getCommunityDebatesForUser(
+  userId: string,
+): Promise<CommunityDebateListItem[]> {
+  if (!isFirestoreConfigured()) {
+    return [];
+  }
+
+  const [membershipsSnap, ownedDebatesSnap, legacyDebatesSnap] =
+    await Promise.all([
+      communityMembershipsCollection().where("userId", "==", userId).get(),
+      communityDebatesCollection().where("ownerId", "==", userId).get(),
+      communityDebatesCollection()
+        .where("memberIds", "array-contains", userId)
+        .get(),
+    ]);
+  const membershipRoles = new Map<string, CommunityMembership["role"]>();
+  for (const doc of membershipsSnap.docs) {
+    const membership = doc.data() as CommunityMembership;
+    membershipRoles.set(membership.debateId, membership.role);
+  }
+
+  const debates = new Map(
+    [...ownedDebatesSnap.docs, ...legacyDebatesSnap.docs].map((doc) => [
+      doc.id,
+      doc.data() as CommunityDebate,
+    ]),
+  );
+  const missingDebateIds = [...membershipRoles.keys()].filter(
+    (debateId) => !debates.has(debateId),
+  );
+  const missingDebateSnaps = await Promise.all(
+    missingDebateIds.map((debateId) =>
+      communityDebatesCollection().doc(debateId).get(),
+    ),
+  );
+  for (const doc of missingDebateSnaps) {
+    if (doc.exists) {
+      debates.set(doc.id, doc.data() as CommunityDebate);
+    }
+  }
+
+  return [...debates.values()]
+    .map((debate) => {
+      return {
+        id: debate.id,
+        question: debate.question,
+        context: debate.context,
+        category: debate.category,
+        locale: debate.locale,
+        role:
+          debate.ownerId === userId
+            ? "host"
+            : (membershipRoles.get(debate.id) ?? "friend"),
+        memberCount:
+          debate.memberCount ?? debate.memberIds?.length ?? 1,
+        updatedAt: debate.updatedAt,
+      } satisfies CommunityDebateListItem;
+    })
+    .sort(
+      (a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    );
 }
 
 export async function acceptCommunityInvite(
