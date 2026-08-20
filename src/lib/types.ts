@@ -170,6 +170,24 @@ export interface CommunityArgument {
   updatedAt: string;
 }
 
+export interface ImportedArgumentSource {
+  label: string;
+  url: string;
+}
+
+export interface ImportedArgumentDraft {
+  side: VoteSide;
+  title: string;
+  body: string;
+  sources: ImportedArgumentSource[];
+}
+
+export interface ArgumentImportPreview {
+  sourceUrl: string;
+  sourceTitle: string;
+  arguments: ImportedArgumentDraft[];
+}
+
 export interface ArgumentComment {
   id: string;
   debateId: string;

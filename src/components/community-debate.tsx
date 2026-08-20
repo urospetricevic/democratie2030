@@ -11,6 +11,7 @@ import {
 import { formatDateTime, getCopy } from "@/lib/i18n";
 import type {
   ArgumentComment,
+  ArgumentImportPreview,
   CommunityArgument,
   CommunityDebatePageData,
   CommunityInvitePreview,
@@ -185,21 +186,24 @@ export function CommunityDebateWorkspace({
       </section>
 
       {data.viewerId === data.debate.ownerId ? (
-        <section className="community-share-panel">
-          <div>
-            <span className="community-share-icon" aria-hidden="true">↗</span>
+        <>
+          <section className="community-share-panel">
             <div>
-              <h2>{communityCopy.shareTitle}</h2>
-              <p>{communityCopy.shareBody}</p>
+              <span className="community-share-icon" aria-hidden="true">↗</span>
+              <div>
+                <h2>{communityCopy.shareTitle}</h2>
+                <p>{communityCopy.shareBody}</p>
+              </div>
             </div>
-          </div>
-          <div className="community-share-control">
-            <input value={sharePath} readOnly aria-label={communityCopy.copyLink} />
-            <button type="button" onClick={copyInvite}>
-              {copied ? communityCopy.copied : communityCopy.copyLink}
-            </button>
-          </div>
-        </section>
+            <div className="community-share-control">
+              <input value={sharePath} readOnly aria-label={communityCopy.copyLink} />
+              <button type="button" onClick={copyInvite}>
+                {copied ? communityCopy.copied : communityCopy.copyLink}
+              </button>
+            </div>
+          </section>
+          <ArgumentImportPanel locale={locale} debateId={data.debate.id} />
+        </>
       ) : null}
 
       <section className="community-argument-board">
@@ -225,6 +229,159 @@ export function CommunityDebateWorkspace({
         </Link>
       </div>
     </main>
+  );
+}
+
+function ArgumentImportPanel({
+  locale,
+  debateId,
+}: {
+  locale: Locale;
+  debateId: string;
+}) {
+  const copy = getCopy(locale).communityDebate;
+  const router = useRouter();
+  const [url, setUrl] = useState("");
+  const [preview, setPreview] = useState<ArgumentImportPreview | null>(null);
+  const [pending, setPending] = useState<"preview" | "commit" | null>(null);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+
+  async function analyzeLink(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setPending("preview");
+    setError("");
+    setSuccess("");
+    setPreview(null);
+    try {
+      const response = await fetch(
+        `/api/community-debates/${debateId}/import`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "preview", url }),
+        },
+      );
+      if (!response.ok) throw new Error("PREVIEW_FAILED");
+      const result = (await response.json()) as {
+        preview: ArgumentImportPreview;
+      };
+      setPreview(result.preview);
+    } catch {
+      setError(copy.importError);
+    } finally {
+      setPending(null);
+    }
+  }
+
+  async function importArguments() {
+    if (!preview) return;
+    setPending("commit");
+    setError("");
+    try {
+      const response = await fetch(
+        `/api/community-debates/${debateId}/import`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "commit",
+            arguments: preview.arguments,
+          }),
+        },
+      );
+      if (!response.ok) throw new Error("IMPORT_FAILED");
+      const result = (await response.json()) as { importedCount: number };
+      setSuccess(copy.importSuccess.replace("{count}", String(result.importedCount)));
+      setPreview(null);
+      setUrl("");
+      router.refresh();
+    } catch {
+      setError(copy.importCommitError);
+    } finally {
+      setPending(null);
+    }
+  }
+
+  const previewBySide = (side: VoteSide) =>
+    preview?.arguments.filter((argument) => argument.side === side) ?? [];
+
+  return (
+    <section className="community-import-panel">
+      <div className="community-import-heading">
+        <span className="community-import-icon" aria-hidden="true">✦</span>
+        <div>
+          <p className="section-label">{copy.importKicker}</p>
+          <h2>{copy.importTitle}</h2>
+          <p>{copy.importBody}</p>
+        </div>
+      </div>
+      <form className="community-import-form" onSubmit={analyzeLink}>
+        <label htmlFor={`argument-import-${debateId}`}>{copy.importUrlLabel}</label>
+        <div>
+          <input
+            id={`argument-import-${debateId}`}
+            type="url"
+            value={url}
+            onChange={(event) => setUrl(event.target.value)}
+            placeholder="https://…"
+            maxLength={2048}
+            required
+          />
+          <button type="submit" disabled={pending !== null}>
+            {pending === "preview" ? copy.importAnalyzing : copy.importAnalyze}
+          </button>
+        </div>
+        <small>{copy.importPrivacy}</small>
+      </form>
+
+      {error ? <p className="community-error" role="alert">{error}</p> : null}
+      {success ? <p className="community-import-success" role="status">{success}</p> : null}
+
+      {preview ? (
+        <div className="community-import-preview">
+          <div className="community-import-preview-header">
+            <div>
+              <p className="section-label">{copy.importPreview}</p>
+              <h3>{preview.sourceTitle}</h3>
+            </div>
+            <strong>{preview.arguments.length} {copy.importArguments}</strong>
+          </div>
+          <div className="community-import-columns">
+            {(["yes", "no"] as VoteSide[]).map((side) => (
+              <div key={side} className={`community-import-side community-${side}`}>
+                <header>
+                  <span>{side === "yes" ? "✓" : "×"}</span>
+                  <strong>{side === "yes" ? copy.yesColumn : copy.noColumn}</strong>
+                  <small>{previewBySide(side).length}</small>
+                </header>
+                <ul>
+                  {previewBySide(side).map((argument) => (
+                    <li key={`${side}-${argument.title}`}>
+                      <strong>{argument.title}</strong>
+                      <p>{argument.body}</p>
+                      {argument.sources.length ? (
+                        <small>
+                          {argument.sources.length} {copy.importReferences}
+                        </small>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="community-import-actions">
+            <button type="button" onClick={() => setPreview(null)} disabled={pending !== null}>
+              {copy.importCancel}
+            </button>
+            <button type="button" onClick={importArguments} disabled={pending !== null}>
+              {pending === "commit" ? copy.importing : copy.importAll}
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </section>
   );
 }
 

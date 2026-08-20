@@ -2477,6 +2477,8 @@ textarea {
 }
 
 .community-share-control button,
+.community-import-form button,
+.community-import-actions button,
 .community-add-argument form > button,
 .community-inline-form form > button,
 .community-comment-form > button {
@@ -2491,6 +2493,267 @@ textarea {
 .community-share-control button {
   min-width: 112px;
   padding: .8rem 1rem;
+}
+
+.community-import-panel {
+  margin: 1rem clamp(1.5rem, 5vw, 5rem) 0;
+  padding: clamp(1.4rem, 3vw, 2.25rem);
+  border: 1px solid #b9c9e6;
+  background:
+    radial-gradient(circle at 92% 0, rgba(11, 92, 255, .12), transparent 24rem),
+    #0b1428;
+  color: white;
+  box-shadow: 0 20px 50px rgba(12, 25, 51, .12);
+}
+
+.community-import-heading {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.community-import-icon {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  place-items: center;
+  background: var(--color-accent);
+  font-size: 1.1rem;
+}
+
+.community-import-heading .section-label {
+  color: #9abaff;
+}
+
+.community-import-heading h2 {
+  max-width: 780px;
+  margin-top: .45rem;
+  color: white;
+  font-size: clamp(1.35rem, 2.5vw, 2.2rem);
+  letter-spacing: -.035em;
+}
+
+.community-import-heading p:last-child {
+  max-width: 820px;
+  margin-top: .55rem;
+  color: #b9c5da;
+  font-size: .74rem;
+  line-height: 1.65;
+}
+
+.community-import-form {
+  margin-top: 1.6rem;
+}
+
+.community-import-form > label {
+  display: block;
+  margin-bottom: .5rem;
+  color: #c9d4e7;
+  font-size: .58rem;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.community-import-form > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.community-import-form input {
+  min-width: 0;
+  min-height: 3.3rem;
+  padding: .8rem 1rem;
+  border: 1px solid #53617a;
+  border-right: 0;
+  background: #111d34;
+  color: white;
+  font-size: .75rem;
+  outline: none;
+}
+
+.community-import-form input:focus {
+  border-color: #7da5f8;
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
+.community-import-form button {
+  min-width: 150px;
+  padding: .8rem 1.2rem;
+  border: 0;
+  background: var(--color-accent);
+  color: white;
+  font-size: .7rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.community-import-form > small {
+  display: block;
+  margin-top: .55rem;
+  color: #8390a7;
+  font-size: .56rem;
+  line-height: 1.5;
+}
+
+.community-import-panel > .community-error,
+.community-import-success {
+  margin-top: 1rem;
+  padding: .8rem 1rem;
+  border: 1px solid rgba(255, 255, 255, .16);
+  background: rgba(255, 255, 255, .06);
+  font-size: .66rem;
+}
+
+.community-import-success {
+  border-color: rgba(67, 190, 128, .48);
+  color: #91e3b9;
+}
+
+.community-import-preview {
+  margin-top: 1.6rem;
+  padding: 1.25rem;
+  border: 1px solid #43516a;
+  background: #f7f9fd;
+  color: var(--color-ink);
+}
+
+.community-import-preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border-strong);
+}
+
+.community-import-preview-header h3 {
+  margin-top: .35rem;
+  font-size: 1.05rem;
+}
+
+.community-import-preview-header > strong {
+  padding: .5rem .7rem;
+  background: #e8effc;
+  color: var(--color-accent);
+  font-size: .58rem;
+  text-transform: uppercase;
+}
+
+.community-import-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.community-import-side {
+  overflow: hidden;
+  border: 1px solid var(--color-border-strong);
+  background: white;
+}
+
+.community-import-side > header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: .6rem;
+  align-items: center;
+  padding: .8rem;
+  border-top: 3px solid var(--color-yes);
+  background: var(--color-yes-soft);
+  color: var(--color-yes);
+}
+
+.community-import-side.community-no > header {
+  border-top-color: var(--color-no);
+  background: var(--color-no-soft);
+  color: var(--color-no);
+}
+
+.community-import-side > header > span {
+  display: grid;
+  width: 1.45rem;
+  height: 1.45rem;
+  place-items: center;
+  background: var(--color-yes);
+  color: white;
+  font-size: .66rem;
+}
+
+.community-import-side.community-no > header > span {
+  background: var(--color-no);
+}
+
+.community-import-side > header strong {
+  font-size: .72rem;
+}
+
+.community-import-side > header small {
+  font-family: var(--font-serif), serif;
+  font-size: 1rem;
+}
+
+.community-import-side ul {
+  display: grid;
+  gap: .75rem;
+  padding: .75rem;
+  list-style: none;
+}
+
+.community-import-side li {
+  padding: .9rem;
+  border: 1px solid var(--color-border);
+  background: #fbfcfe;
+}
+
+.community-import-side li > strong {
+  display: block;
+  font-size: .78rem;
+  line-height: 1.35;
+}
+
+.community-import-side li > p {
+  display: -webkit-box;
+  overflow: hidden;
+  margin-top: .45rem;
+  color: var(--color-muted-strong);
+  font-size: .64rem;
+  line-height: 1.55;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.community-import-side li > small {
+  display: inline-block;
+  margin-top: .6rem;
+  color: var(--color-accent);
+  font-size: .54rem;
+  font-weight: 800;
+}
+
+.community-import-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: .75rem;
+  margin-top: 1rem;
+}
+
+.community-import-actions button {
+  min-height: 2.8rem;
+  padding: .65rem 1rem;
+  border: 1px solid var(--color-border-strong);
+  background: white;
+  color: var(--color-muted-strong);
+  font-size: .66rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.community-import-actions button:last-child {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: white;
 }
 
 .community-argument-board {
@@ -2875,6 +3138,7 @@ textarea {
   }
 
   .community-share-panel,
+  .community-import-columns,
   .community-argument-board {
     grid-template-columns: 1fr;
   }
@@ -2909,6 +3173,7 @@ textarea {
   }
 
   .community-share-panel,
+  .community-import-panel,
   .community-argument-board {
     margin-right: 0;
     margin-left: 0;
@@ -2922,6 +3187,7 @@ textarea {
   }
 
   .community-share-control,
+  .community-import-form > div,
   .community-comment-form {
     grid-template-columns: 1fr;
   }
@@ -2929,6 +3195,20 @@ textarea {
   .community-share-control input {
     border-right: 1px solid #adc4ed;
     border-bottom: 0;
+  }
+
+  .community-import-form input {
+    border-right: 1px solid #53617a;
+    border-bottom: 0;
+  }
+
+  .community-import-form button {
+    min-height: 3rem;
+  }
+
+  .community-import-actions {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 
   .community-share-control button,

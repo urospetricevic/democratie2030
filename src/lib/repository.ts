@@ -37,6 +37,7 @@ import {
   type Debate,
   type DebateAggregate,
   type DebatePageData,
+  type ImportedArgumentDraft,
   type Locale,
   type PasswordAccountRecord,
   type PasswordResetRecord,
@@ -1251,6 +1252,124 @@ export async function createCommunityArgument(
     transaction.create(communityArgumentsCollection().doc(argumentId), argument);
     transaction.update(debateRef, { updatedAt: now });
     return argument;
+  });
+}
+
+export async function getOwnedCommunityDebate(
+  userId: string,
+  debateId: string,
+) {
+  const debateSnap = await communityDebatesCollection().doc(debateId).get();
+  if (!debateSnap.exists) {
+    throw new Error("DEBATE_NOT_FOUND");
+  }
+
+  const debate = debateSnap.data() as CommunityDebate;
+  if (debate.ownerId !== userId) {
+    throw new Error("FORBIDDEN");
+  }
+  return debate;
+}
+
+export async function importCommunityArguments(
+  userId: string,
+  debateId: string,
+  drafts: ImportedArgumentDraft[],
+) {
+  if (!drafts.length || drafts.length > 20) {
+    throw new Error("INVALID_IMPORT");
+  }
+
+  const normalizedDrafts = drafts.map((draft) => {
+    const title = normalizeCommunityQuestion(draft.title).slice(0, 140);
+    const body = normalizeCommunityText(draft.body, 2400);
+    if (
+      !["yes", "no"].includes(draft.side) ||
+      title.length < 3 ||
+      body.length < 8 ||
+      draft.sources.length > 8
+    ) {
+      throw new Error("INVALID_IMPORT");
+    }
+
+    const sources = draft.sources.map((source) => {
+      const label = normalizeCommunityQuestion(source.label).slice(0, 160);
+      const url = source.url.trim();
+      if (label.length < 2 || !isValidSourceUrl(url)) {
+        throw new Error("INVALID_SOURCE");
+      }
+      return { label, url };
+    });
+    return { side: draft.side, title, body, sources };
+  });
+
+  const existingSnap = await communityArgumentsCollection()
+    .where("debateId", "==", debateId)
+    .get();
+  const existingKeys = new Set(
+    existingSnap.docs.map((doc) => {
+      const argument = mapCommunityArgument(
+        doc.data() as Partial<CommunityArgument>,
+      );
+      return `${argument.side}:${argument.title.toLocaleLowerCase()}`;
+    }),
+  );
+  const batchKeys = new Set<string>();
+  const uniqueDrafts = normalizedDrafts.filter((draft) => {
+    const key = `${draft.side}:${draft.title.toLocaleLowerCase()}`;
+    if (existingKeys.has(key) || batchKeys.has(key)) return false;
+    batchKeys.add(key);
+    return true;
+  });
+
+  if (!uniqueDrafts.length) return [];
+  if (existingSnap.size + uniqueDrafts.length > 200) {
+    throw new Error("ARGUMENT_LIMIT");
+  }
+
+  const db = getFirestore();
+  const now = new Date().toISOString();
+  return db.runTransaction(async (transaction) => {
+    const debateRef = communityDebatesCollection().doc(debateId);
+    const profileRef = profilesCollection().doc(userId);
+    const [debateSnap, profileSnap] = await Promise.all([
+      transaction.get(debateRef),
+      transaction.get(profileRef),
+    ]);
+    if (!debateSnap.exists) throw new Error("DEBATE_NOT_FOUND");
+    if (!profileSnap.exists) throw new Error("ALIAS_REQUIRED");
+
+    const debate = debateSnap.data() as CommunityDebate;
+    if (debate.ownerId !== userId) throw new Error("FORBIDDEN");
+    const profile = profileSnap.data() as UserProfile;
+    const imported = uniqueDrafts.map((draft) => {
+      const argumentId = randomUUID();
+      const argument: CommunityArgument = {
+        id: argumentId,
+        debateId,
+        side: draft.side,
+        authorId: userId,
+        authorAlias: profile.alias,
+        title: draft.title,
+        body: draft.body,
+        sources: draft.sources.map((source) => ({
+          id: randomUUID(),
+          ...source,
+          addedBy: userId,
+          addedByAlias: profile.alias,
+          createdAt: now,
+        })),
+        createdAt: now,
+        updatedAt: now,
+      };
+      transaction.create(
+        communityArgumentsCollection().doc(argumentId),
+        argument,
+      );
+      return argument;
+    });
+    transaction.update(debateRef, { updatedAt: now });
+    return imported;
   });
 }
 
