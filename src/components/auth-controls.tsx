@@ -36,14 +36,16 @@ export function AuthControls({
         <>
           <Link
             href={`/${locale}/portal`}
-            title={dictionary.portal.navLabel}
+            title={`${dictionary.portal.navLabel} — @${alias ?? "citizen"}`}
             className="account-portal-link"
           >
-            <span aria-hidden="true">▦</span>
-            <span>
-              <strong>{dictionary.portal.navLabel}</strong>
-              <small>@{alias ?? "citizen"}</small>
-            </span>
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <rect x="3" y="3" width="5" height="5" rx="1" />
+              <rect x="12" y="3" width="5" height="5" rx="1" />
+              <rect x="3" y="12" width="5" height="5" rx="1" />
+              <rect x="12" y="12" width="5" height="5" rx="1" />
+            </svg>
+            <strong>{dictionary.portal.navLabel}</strong>
           </Link>
           <button
             type="button"
@@ -53,10 +55,14 @@ export function AuthControls({
               })
             }
             className="account-signout btn-secondary"
+            aria-label={dictionary.signOut}
+            title={dictionary.signOut}
             disabled={pending}
           >
-            <span className="account-signout-label">{dictionary.signOut}</span>
-            <span className="account-signout-icon" aria-hidden="true">↗</span>
+            <svg viewBox="0 0 20 20" aria-hidden="true">
+              <path d="M8 4H5.75A1.75 1.75 0 0 0 4 5.75v8.5C4 15.22 4.78 16 5.75 16H8" />
+              <path d="M11.5 6.5 15 10l-3.5 3.5M7.5 10H15" />
+            </svg>
           </button>
         </>
       ) : (

@@ -39,9 +39,6 @@ export default async function LocaleLayout({
             <Link href={`/${locale}`}>{dictionary.navExplore}</Link>
             <Link href={`/${locale}#platform`}>{dictionary.navPlatform}</Link>
             <Link href={`/${locale}#vision`}>{dictionary.navVision}</Link>
-            {session?.user?.id ? (
-              <Link href={`/${locale}/portal`}>{dictionary.portal.navLabel}</Link>
-            ) : null}
           </nav>
           <div className="header-actions">
             <LanguageSwitcher locale={locale} />
