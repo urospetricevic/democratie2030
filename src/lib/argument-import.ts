@@ -29,18 +29,18 @@ interface ExtractedDocument {
 }
 
 const modelResultSchema = z.object({
-  sourceTitle: z.string().min(1).max(240),
+  sourceTitle: z.string().min(1).max(2000),
   arguments: z
     .array(
       z.object({
         side: z.enum(["yes", "no"]),
-        title: z.string().min(3).max(140),
-        body: z.string().min(8).max(2400),
-        sourceIndexes: z.array(z.number().int().positive()).max(8).default([]),
+        title: z.string().min(3).max(2000),
+        body: z.string().min(8).max(10_000),
+        sourceIndexes: z.array(z.number().int()).max(20).default([]),
       }),
     )
     .min(2)
-    .max(20),
+    .max(24),
 });
 
 export async function extractArgumentsFromUrl(
@@ -480,6 +480,32 @@ ${document.text}
         generationConfig: {
           temperature: 0.15,
           responseMimeType: "application/json",
+          responseSchema: {
+            type: "OBJECT",
+            required: ["sourceTitle", "arguments"],
+            properties: {
+              sourceTitle: { type: "STRING" },
+              arguments: {
+                type: "ARRAY",
+                minItems: 2,
+                maxItems: 20,
+                items: {
+                  type: "OBJECT",
+                  required: ["side", "title", "body", "sourceIndexes"],
+                  properties: {
+                    side: { type: "STRING", enum: ["yes", "no"] },
+                    title: { type: "STRING" },
+                    body: { type: "STRING" },
+                    sourceIndexes: {
+                      type: "ARRAY",
+                      maxItems: 8,
+                      items: { type: "INTEGER" },
+                    },
+                  },
+                },
+              },
+            },
+          },
         },
       }),
     },
@@ -503,9 +529,10 @@ ${document.text}
   const argumentsWithSources: ImportedArgumentDraft[] = parsed.data.arguments.map(
     (argument) => ({
       side: argument.side,
-      title: argument.title.trim(),
-      body: argument.body.trim(),
+      title: argument.title.trim().replace(/\s+/g, " ").slice(0, 140),
+      body: argument.body.trim().slice(0, 2400),
       sources: [...new Set(argument.sourceIndexes)]
+        .filter((index) => index > 0)
         .map((index) => document.references[index - 1])
         .filter((source): source is ImportedArgumentSource => Boolean(source))
         .slice(0, 8),
@@ -513,7 +540,7 @@ ${document.text}
   );
 
   return {
-    sourceTitle: parsed.data.sourceTitle.trim() || document.title,
+    sourceTitle: parsed.data.sourceTitle.trim().slice(0, 240) || document.title,
     arguments: argumentsWithSources,
   };
 }
