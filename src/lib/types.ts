@@ -170,6 +170,29 @@ export interface CommunityArgument {
   updatedAt: string;
 }
 
+export type CommunityConclusionPosition =
+  | "yes"
+  | "no"
+  | "mixed"
+  | "insufficient";
+
+export interface CommunityDebateConclusion {
+  id: string;
+  debateId: string;
+  position: CommunityConclusionPosition;
+  headline: string;
+  summary: string;
+  conditions: string[];
+  caveats: string[];
+  argumentFingerprint: string;
+  argumentCount: number;
+  yesArgumentCount: number;
+  noArgumentCount: number;
+  generatedBy: "vertex";
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ImportedArgumentSource {
   label: string;
   url: string;
@@ -214,6 +237,8 @@ export interface CommunityDebatePageData {
   members: CommunityMember[];
   arguments: CommunityArgument[];
   comments: ArgumentComment[];
+  conclusion: CommunityDebateConclusion | null;
+  conclusionIsStale: boolean;
   viewerId: string;
 }
 

@@ -22,6 +22,10 @@ import { isFirestoreConfigured } from "@/lib/env";
 import { getFirestore } from "@/lib/firestore";
 import { generateDebateSeed } from "@/lib/seed";
 import {
+  computeArgumentFingerprint,
+  type GeneratedCommunityConclusion,
+} from "@/lib/community-conclusion";
+import {
   DEBATE_SLUG,
   type ArgumentComment,
   type ArgumentSource,
@@ -30,6 +34,7 @@ import {
   type CommunityArgument,
   type CommunityDebate,
   type CommunityDebateAccess,
+  type CommunityDebateConclusion,
   type CommunityDebateListItem,
   type CommunityInvitePreview,
   type CommunityMember,
@@ -96,6 +101,10 @@ function communityArgumentsCollection() {
 
 function communityMembershipsCollection() {
   return getFirestore().collection("communityMemberships");
+}
+
+function communityConclusionsCollection() {
+  return getFirestore().collection("communityDebateConclusions");
 }
 
 function argumentCommentsCollection() {
@@ -993,10 +1002,12 @@ export async function getCommunityDebateAccess(
         .get()
     : null;
   if (hasCommunityAccess(debate, userId, Boolean(membershipSnap?.exists))) {
-    const [argumentsSnap, commentsSnap, membershipsSnap] = await Promise.all([
+    const [argumentsSnap, commentsSnap, membershipsSnap, conclusionSnap] =
+      await Promise.all([
       communityArgumentsCollection().where("debateId", "==", debateId).get(),
       argumentCommentsCollection().where("debateId", "==", debateId).get(),
       communityMembershipsCollection().where("debateId", "==", debateId).get(),
+      communityConclusionsCollection().doc(debateId).get(),
     ]);
 
     const debateArguments = argumentsSnap.docs
@@ -1016,6 +1027,10 @@ export async function getCommunityDebateAccess(
     const memberships = membershipsSnap.docs.map(
       (doc) => doc.data() as CommunityMembership,
     );
+    const conclusion = conclusionSnap.exists
+      ? (conclusionSnap.data() as CommunityDebateConclusion)
+      : null;
+    const argumentFingerprint = computeArgumentFingerprint(debateArguments);
 
     return {
       status: "member",
@@ -1024,6 +1039,10 @@ export async function getCommunityDebateAccess(
         members: mergeCommunityMembers(debate, memberships),
         arguments: debateArguments,
         comments,
+        conclusion,
+        conclusionIsStale: Boolean(
+          conclusion && conclusion.argumentFingerprint !== argumentFingerprint,
+        ),
         viewerId: userId as string,
       },
     };
@@ -1269,6 +1288,67 @@ export async function getOwnedCommunityDebate(
     throw new Error("FORBIDDEN");
   }
   return debate;
+}
+
+export async function getOwnedCommunityDebateWithArguments(
+  userId: string,
+  debateId: string,
+) {
+  const debate = await getOwnedCommunityDebate(userId, debateId);
+  const argumentsSnap = await communityArgumentsCollection()
+    .where("debateId", "==", debateId)
+    .get();
+  const debateArguments = argumentsSnap.docs
+    .map((doc) =>
+      mapCommunityArgument(doc.data() as Partial<CommunityArgument>),
+    )
+    .sort(
+      (a, b) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    );
+  return { debate, arguments: debateArguments };
+}
+
+export async function saveCommunityDebateConclusion(
+  userId: string,
+  debateId: string,
+  argumentsList: CommunityArgument[],
+  generated: GeneratedCommunityConclusion,
+) {
+  const db = getFirestore();
+  const now = new Date().toISOString();
+  return db.runTransaction(async (transaction) => {
+    const debateRef = communityDebatesCollection().doc(debateId);
+    const conclusionRef = communityConclusionsCollection().doc(debateId);
+    const [debateSnap, existingConclusionSnap] = await Promise.all([
+      transaction.get(debateRef),
+      transaction.get(conclusionRef),
+    ]);
+    if (!debateSnap.exists) throw new Error("DEBATE_NOT_FOUND");
+    const debate = debateSnap.data() as CommunityDebate;
+    if (debate.ownerId !== userId) throw new Error("FORBIDDEN");
+
+    const conclusion: CommunityDebateConclusion = {
+      id: debateId,
+      debateId,
+      ...generated,
+      argumentFingerprint: computeArgumentFingerprint(argumentsList),
+      argumentCount: argumentsList.length,
+      yesArgumentCount: argumentsList.filter(
+        (argument) => argument.side === "yes",
+      ).length,
+      noArgumentCount: argumentsList.filter(
+        (argument) => argument.side === "no",
+      ).length,
+      generatedBy: "vertex",
+      createdAt: existingConclusionSnap.exists
+        ? (existingConclusionSnap.data() as CommunityDebateConclusion).createdAt
+        : now,
+      updatedAt: now,
+    };
+    transaction.set(conclusionRef, conclusion);
+    return conclusion;
+  });
 }
 
 export async function importCommunityArguments(

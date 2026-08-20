@@ -13,6 +13,7 @@ import type {
   ArgumentComment,
   ArgumentImportPreview,
   CommunityArgument,
+  CommunityDebateConclusion,
   CommunityDebatePageData,
   CommunityInvitePreview,
   Locale,
@@ -206,6 +207,15 @@ export function CommunityDebateWorkspace({
         </>
       ) : null}
 
+      <AiConclusionPanel
+        locale={locale}
+        debateId={data.debate.id}
+        initialConclusion={data.conclusion}
+        initialIsStale={data.conclusionIsStale}
+        isHost={data.viewerId === data.debate.ownerId}
+        argumentCount={data.arguments.length}
+      />
+
       <section className="community-argument-board">
         <ArgumentColumn
           locale={locale}
@@ -229,6 +239,158 @@ export function CommunityDebateWorkspace({
         </Link>
       </div>
     </main>
+  );
+}
+
+function AiConclusionPanel({
+  locale,
+  debateId,
+  initialConclusion,
+  initialIsStale,
+  isHost,
+  argumentCount,
+}: {
+  locale: Locale;
+  debateId: string;
+  initialConclusion: CommunityDebateConclusion | null;
+  initialIsStale: boolean;
+  isHost: boolean;
+  argumentCount: number;
+}) {
+  const copy = getCopy(locale).communityDebate;
+  const router = useRouter();
+  const [conclusion, setConclusion] =
+    useState<CommunityDebateConclusion | null>(initialConclusion);
+  const [isStale, setIsStale] = useState(initialIsStale);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState("");
+
+  async function generateConclusion() {
+    setPending(true);
+    setError("");
+    try {
+      const response = await fetch(
+        `/api/community-debates/${debateId}/conclusion`,
+        { method: "POST" },
+      );
+      if (!response.ok) throw new Error("CONCLUSION_FAILED");
+      const result = (await response.json()) as {
+        conclusion: CommunityDebateConclusion;
+      };
+      setConclusion(result.conclusion);
+      setIsStale(false);
+      router.refresh();
+    } catch {
+      setError(copy.conclusionError);
+    } finally {
+      setPending(false);
+    }
+  }
+
+  const positionLabel = conclusion
+    ? {
+        yes: copy.conclusionYes,
+        no: copy.conclusionNo,
+        mixed: copy.conclusionMixed,
+        insufficient: copy.conclusionInsufficient,
+      }[conclusion.position]
+    : "";
+  const leadSummary = conclusion?.summary.split(/\n\s*\n/)[0] ?? "";
+
+  return (
+    <section className={`community-conclusion${conclusion ? ` is-${conclusion.position}` : ""}`}>
+      <div className="community-conclusion-intro">
+        <div className="community-conclusion-mark" aria-hidden="true">✦</div>
+        <div>
+          <div className="community-conclusion-kicker">
+            <p className="section-label">{copy.conclusionKicker}</p>
+            {conclusion ? <span>{positionLabel}</span> : null}
+            {isStale ? <span className="is-stale">{copy.conclusionStale}</span> : null}
+          </div>
+          {conclusion ? (
+            <>
+              <h2>{conclusion.headline}</h2>
+              <p className="community-conclusion-summary">{leadSummary}</p>
+            </>
+          ) : (
+            <>
+              <h2>{copy.conclusionEmptyTitle}</h2>
+              <p className="community-conclusion-summary">
+                {copy.conclusionEmptyBody}
+              </p>
+            </>
+          )}
+        </div>
+        {isHost ? (
+          <button
+            type="button"
+            className="community-conclusion-action"
+            onClick={generateConclusion}
+            disabled={pending || argumentCount < 2}
+          >
+            {pending
+              ? copy.conclusionGenerating
+              : conclusion
+                ? copy.conclusionRefresh
+                : copy.conclusionGenerate}
+          </button>
+        ) : null}
+      </div>
+
+      {conclusion ? (
+        <details className="community-conclusion-expansion">
+          <summary>
+            <span>{copy.conclusionExplore}</span>
+            <i aria-hidden="true">⌄</i>
+          </summary>
+          <div className="community-conclusion-expanded-body">
+            <p>{conclusion.summary}</p>
+            {conclusion.conditions.length || conclusion.caveats.length ? (
+              <div className="community-conclusion-details">
+                {conclusion.conditions.length ? (
+                  <div>
+                    <h3>{copy.conclusionConditions}</h3>
+                    <ul>
+                      {conclusion.conditions.map((condition) => (
+                        <li key={condition}>{condition}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+                {conclusion.caveats.length ? (
+                  <div>
+                    <h3>{copy.conclusionCaveats}</h3>
+                    <ul>
+                      {conclusion.caveats.map((caveat) => (
+                        <li key={caveat}>{caveat}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        </details>
+      ) : null}
+
+      <div className="community-conclusion-footnote">
+        <span>
+          {conclusion
+            ? copy.conclusionBasedOn.replace(
+                "{count}",
+                String(conclusion.argumentCount),
+              )
+            : argumentCount >= 2
+              ? copy.conclusionReady
+              : copy.conclusionNeedsArguments.replace(
+                  "{count}",
+                  String(Math.max(0, 2 - argumentCount)),
+                )}
+        </span>
+        <span>{copy.conclusionDisclaimer}</span>
+      </div>
+      {error ? <p className="community-error" role="alert">{error}</p> : null}
+    </section>
   );
 }
 
@@ -555,32 +717,35 @@ function CommunityArgumentCard({
       <h3>{argument.title}</h3>
       <p className="rich-copy">{argument.body}</p>
 
-      <div className="community-sources">
-        <div className="community-card-section-heading">
+      <details className="community-sources">
+        <summary className="community-card-section-heading">
           <strong>{copy.sources}</strong>
           <span>{argument.sources.length}</span>
+          <i aria-hidden="true">⌄</i>
+        </summary>
+        <div className="community-sources-content">
+          {argument.sources.length ? (
+            <ul>
+              {argument.sources.map((source) => (
+                <li key={source.id}>
+                  <span aria-hidden="true">↗</span>
+                  <a href={source.url} target="_blank" rel="noreferrer">
+                    {source.label}
+                  </a>
+                  <small>{copy.by} @{source.addedByAlias}</small>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>{copy.noSources}</p>
+          )}
+          <SourceForm
+            locale={locale}
+            debateId={debateId}
+            argumentId={argument.id}
+          />
         </div>
-        {argument.sources.length ? (
-          <ul>
-            {argument.sources.map((source) => (
-              <li key={source.id}>
-                <span aria-hidden="true">↗</span>
-                <a href={source.url} target="_blank" rel="noreferrer">
-                  {source.label}
-                </a>
-                <small>{copy.by} @{source.addedByAlias}</small>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>{copy.noSources}</p>
-        )}
-        <SourceForm
-          locale={locale}
-          debateId={debateId}
-          argumentId={argument.id}
-        />
-      </div>
+      </details>
 
       <div className="community-comments">
         <div className="community-card-section-heading">
