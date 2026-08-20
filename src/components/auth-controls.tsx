@@ -28,7 +28,7 @@ export function AuthControls({
   return (
     <div
       className={clsx(
-        "flex items-center gap-3",
+        "auth-controls flex items-center gap-3",
         compact ? "justify-start" : "justify-end",
       )}
     >
@@ -37,9 +37,13 @@ export function AuthControls({
           <Link
             href={`/${locale}/portal`}
             title={dictionary.portal.navLabel}
-            className="inline-flex items-center rounded-full border border-[var(--color-border-strong)] bg-[var(--color-ink)] px-4 py-2 text-sm font-semibold text-white shadow-[0_16px_40px_rgba(15,23,42,0.22)] transition hover:-translate-y-0.5"
+            className="account-portal-link"
           >
-            {alias ?? "citizen"}
+            <span aria-hidden="true">▦</span>
+            <span>
+              <strong>{dictionary.portal.navLabel}</strong>
+              <small>@{alias ?? "citizen"}</small>
+            </span>
           </Link>
           <button
             type="button"
@@ -48,10 +52,11 @@ export function AuthControls({
                 await signOut({ callbackUrl: `/${locale}` });
               })
             }
-            className="btn-secondary"
+            className="account-signout btn-secondary"
             disabled={pending}
           >
-            {dictionary.signOut}
+            <span className="account-signout-label">{dictionary.signOut}</span>
+            <span className="account-signout-icon" aria-hidden="true">↗</span>
           </button>
         </>
       ) : (

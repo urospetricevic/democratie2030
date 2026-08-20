@@ -56,6 +56,7 @@ export function AccountAccessForm({
   const [loginPending, startLoginTransition] = useTransition();
   const [registerMessage, setRegisterMessage] = useState<string | null>(null);
   const [loginMessage, setLoginMessage] = useState<string | null>(null);
+  const [accessMode, setAccessMode] = useState<"signin" | "register">("signin");
   const [registerForm, setRegisterForm] = useState({
     alias: "",
     email: "",
@@ -68,8 +69,34 @@ export function AccountAccessForm({
   });
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[1.08fr_0.92fr]">
-      <div className="rounded-[2rem] border border-[var(--color-border-strong)] bg-[linear-gradient(145deg,rgba(15,23,42,0.98),rgba(15,118,110,0.94))] p-6 text-white shadow-[0_32px_90px_rgba(15,23,42,0.28)]">
+    <div className="account-access-grid grid gap-4 lg:grid-cols-[1.08fr_0.92fr]">
+      <div className="access-mode-switch" role="tablist" aria-label={dictionary.accessModeLabel}>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={accessMode === "signin"}
+          aria-controls="access-signin-panel"
+          onClick={() => setAccessMode("signin")}
+        >
+          {dictionary.accessHaveAccount}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={accessMode === "register"}
+          aria-controls="access-register-panel"
+          onClick={() => setAccessMode("register")}
+        >
+          {dictionary.accessCreateAccountTab}
+        </button>
+      </div>
+
+      <div
+        id="access-register-panel"
+        role="tabpanel"
+        data-active={accessMode === "register"}
+        className="account-access-card access-register-card rounded-[2rem] border border-[var(--color-border-strong)] bg-[linear-gradient(145deg,rgba(15,23,42,0.98),rgba(15,118,110,0.94))] p-6 text-white shadow-[0_32px_90px_rgba(15,23,42,0.28)]"
+      >
         <div className="flex items-center justify-between gap-3">
           <span className="rounded-full bg-white/12 px-3 py-1 text-xs font-bold uppercase tracking-[0.22em] text-[var(--color-highlight)]">
             {dictionary.accessRecommended}
@@ -138,6 +165,7 @@ export function AccountAccessForm({
                     email: normalizeEmail(registerForm.email),
                     password: "",
                   });
+                  setAccessMode("signin");
                   return;
                 }
 
@@ -270,7 +298,12 @@ export function AccountAccessForm({
         </form>
       </div>
 
-      <div className="panel rounded-[2rem] p-6">
+      <div
+        id="access-signin-panel"
+        role="tabpanel"
+        data-active={accessMode === "signin"}
+        className="account-access-card access-login-card panel rounded-[2rem] p-6"
+      >
         <div className="flex items-center justify-between gap-3">
           <span className="rounded-full bg-[var(--color-highlight-soft)] px-3 py-1 text-xs font-bold uppercase tracking-[0.22em] text-[var(--color-highlight-strong)]">
             {dictionary.accessSignInTitle}

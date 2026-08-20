@@ -47,8 +47,8 @@ export default async function AccessPage({
   }
 
   return (
-    <section className="grid gap-6">
-      <div className="panel overflow-hidden rounded-[2.75rem] p-8 lg:p-10">
+    <section className="access-page grid gap-4">
+      <div className="access-hero-panel panel overflow-hidden rounded-[2.75rem] p-8 lg:p-10">
         <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
           <div className="space-y-5">
             <div className="flex flex-wrap items-center gap-3">
@@ -67,7 +67,7 @@ export default async function AccessPage({
             </p>
           </div>
 
-          <div className="rounded-[2rem] border border-[var(--color-border)] bg-[linear-gradient(160deg,rgba(255,255,255,0.9),rgba(239,246,255,0.86))] p-6">
+          <div className="access-side-note rounded-[2rem] border border-[var(--color-border)] bg-[linear-gradient(160deg,rgba(255,255,255,0.9),rgba(239,246,255,0.86))] p-6">
             <p className="eyebrow text-xs font-bold text-[var(--color-muted-strong)]">
               {dictionary.pulseTitle}
             </p>

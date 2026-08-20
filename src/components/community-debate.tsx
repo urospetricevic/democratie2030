@@ -117,6 +117,7 @@ export function CommunityDebateWorkspace({
   const copy = getCopy(locale);
   const communityCopy = copy.communityDebate;
   const [copied, setCopied] = useState(false);
+  const [activeSide, setActiveSide] = useState<VoteSide>("yes");
   const sharePath = `/${locale}/community/${data.debate.id}?invite=${encodeURIComponent(data.debate.inviteCode)}`;
   const commentsByArgument = useMemo(() => {
     const grouped = new Map<string, ArgumentComment[]>();
@@ -216,6 +217,31 @@ export function CommunityDebateWorkspace({
         argumentCount={data.arguments.length}
       />
 
+      <div className="community-side-tabs" role="tablist" aria-label={communityCopy.mobilePerspectiveTabs}>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeSide === "yes"}
+          aria-controls={`community-side-yes-${data.debate.id}`}
+          onClick={() => setActiveSide("yes")}
+        >
+          <span aria-hidden="true">✓</span>
+          {communityCopy.yesColumn}
+          <strong>{yesArguments.length}</strong>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeSide === "no"}
+          aria-controls={`community-side-no-${data.debate.id}`}
+          onClick={() => setActiveSide("no")}
+        >
+          <span aria-hidden="true">×</span>
+          {communityCopy.noColumn}
+          <strong>{noArguments.length}</strong>
+        </button>
+      </div>
+
       <section className="community-argument-board">
         <ArgumentColumn
           locale={locale}
@@ -223,6 +249,7 @@ export function CommunityDebateWorkspace({
           side="yes"
           arguments={yesArguments}
           commentsByArgument={commentsByArgument}
+          isActive={activeSide === "yes"}
         />
         <ArgumentColumn
           locale={locale}
@@ -230,6 +257,7 @@ export function CommunityDebateWorkspace({
           side="no"
           arguments={noArguments}
           commentsByArgument={commentsByArgument}
+          isActive={activeSide === "no"}
         />
       </section>
 
@@ -553,17 +581,23 @@ function ArgumentColumn({
   side,
   arguments: debateArguments,
   commentsByArgument,
+  isActive,
 }: {
   locale: Locale;
   debateId: string;
   side: VoteSide;
   arguments: CommunityArgument[];
   commentsByArgument: Map<string, ArgumentComment[]>;
+  isActive: boolean;
 }) {
   const copy = getCopy(locale).communityDebate;
 
   return (
-    <div className={`community-argument-column community-${side}`}>
+    <div
+      id={`community-side-${side}-${debateId}`}
+      role="tabpanel"
+      className={`community-argument-column community-${side}${isActive ? " community-side-active" : ""}`}
+    >
       <header>
         <div>
           <span aria-hidden="true">{side === "yes" ? "✓" : "×"}</span>
@@ -715,7 +749,15 @@ function CommunityArgumentCard({
         </time>
       </div>
       <h3>{argument.title}</h3>
-      <p className="rich-copy">{argument.body}</p>
+
+      <details className="community-argument-explanation">
+        <summary>
+          <span className="when-closed">{copy.showExplanation}</span>
+          <span className="when-open">{copy.hideExplanation}</span>
+          <i aria-hidden="true">⌄</i>
+        </summary>
+        <p className="rich-copy">{argument.body}</p>
+      </details>
 
       <details className="community-sources">
         <summary className="community-card-section-heading">
@@ -747,34 +789,37 @@ function CommunityArgumentCard({
         </div>
       </details>
 
-      <div className="community-comments">
-        <div className="community-card-section-heading">
+      <details className="community-comments">
+        <summary className="community-card-section-heading">
           <strong>{copy.comments}</strong>
           <span>{comments.length}</span>
+          <i aria-hidden="true">⌄</i>
+        </summary>
+        <div className="community-comments-content">
+          {comments.length ? (
+            <ol>
+              {comments.map((comment) => (
+                <li key={comment.id}>
+                  <div>
+                    <strong>@{comment.authorAlias}</strong>
+                    <time dateTime={comment.createdAt}>
+                      {formatDateTime(locale, comment.createdAt)}
+                    </time>
+                  </div>
+                  <p>{comment.body}</p>
+                </li>
+              ))}
+            </ol>
+          ) : (
+            <p>{copy.noComments}</p>
+          )}
+          <CommentForm
+            locale={locale}
+            debateId={debateId}
+            argumentId={argument.id}
+          />
         </div>
-        {comments.length ? (
-          <ol>
-            {comments.map((comment) => (
-              <li key={comment.id}>
-                <div>
-                  <strong>@{comment.authorAlias}</strong>
-                  <time dateTime={comment.createdAt}>
-                    {formatDateTime(locale, comment.createdAt)}
-                  </time>
-                </div>
-                <p>{comment.body}</p>
-              </li>
-            ))}
-          </ol>
-        ) : (
-          <p>{copy.noComments}</p>
-        )}
-        <CommentForm
-          locale={locale}
-          debateId={debateId}
-          argumentId={argument.id}
-        />
-      </div>
+      </details>
     </article>
   );
 }

@@ -28,7 +28,7 @@ export default async function LocaleLayout({
     : null;
 
   return (
-    <div className="site-frame min-h-screen">
+    <div className={`site-frame min-h-screen${session?.user?.id ? " has-mobile-app-nav" : ""}`}>
       <div className="mx-auto flex min-h-screen w-full max-w-[1536px] flex-col">
         <header className="site-header">
           <div className="brand-lockup">
@@ -57,6 +57,18 @@ export default async function LocaleLayout({
         </header>
 
         <main className="flex-1">{children}</main>
+        {session?.user?.id ? (
+          <nav className="mobile-app-nav" aria-label={dictionary.portal.mobileNavLabel}>
+            <Link href={`/${locale}/portal`}>
+              <span aria-hidden="true">▦</span>
+              <strong>{dictionary.portal.navLabel}</strong>
+            </Link>
+            <Link href={`/${locale}/create`}>
+              <span aria-hidden="true">＋</span>
+              <strong>{dictionary.createDebate}</strong>
+            </Link>
+          </nav>
+        ) : null}
         <footer className="site-footer">
           <div className="footer-brand">
             <strong>{dictionary.brand}</strong>
