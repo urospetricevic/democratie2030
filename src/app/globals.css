@@ -4880,6 +4880,14 @@ textarea {
     padding-left: .7rem;
   }
 
+  .community-person p {
+    font-size: 0;
+  }
+
+  .community-person strong {
+    font-size: .64rem;
+  }
+
   .community-person-empty {
     display: none;
   }
