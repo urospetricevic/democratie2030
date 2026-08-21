@@ -15,8 +15,11 @@ import type {
   CommunityArgument,
   CommunityDebateConclusion,
   CommunityDebatePageData,
+  CommunityDebatePosition,
   CommunityDebateTitleChange,
   CommunityInvitePreview,
+  CommunityPositionChoice,
+  CommunityPositionSummary,
   Locale,
   VoteSide,
 } from "@/lib/types";
@@ -26,6 +29,7 @@ interface CommunityDebateInviteProps {
   debate: CommunityInvitePreview;
   inviteCode: string;
   isAuthenticated: boolean;
+  initialPosition: CommunityPositionChoice | null;
 }
 
 export function CommunityDebateInvite({
@@ -33,14 +37,31 @@ export function CommunityDebateInvite({
   debate,
   inviteCode,
   isAuthenticated,
+  initialPosition,
 }: CommunityDebateInviteProps) {
   const copy = getCopy(locale).communityDebate;
   const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
-  const nextPath = `/${locale}/community/${debate.id}?invite=${encodeURIComponent(inviteCode)}`;
+  const [position, setPosition] =
+    useState<CommunityPositionChoice | null>(initialPosition);
+  const nextPath = `/${locale}/community/${debate.id}?invite=${encodeURIComponent(inviteCode)}${position ? `&position=${position}` : ""}`;
+  const positionOptions: Array<{
+    value: CommunityPositionChoice;
+    label: string;
+    tone: string;
+  }> = [
+    { value: "yes", label: copy.positionYes, tone: "yes" },
+    { value: "no", label: copy.positionNo, tone: "no" },
+    { value: "undecided", label: copy.positionUndecided, tone: "undecided" },
+    { value: "skip", label: copy.positionSkip, tone: "skip" },
+  ];
 
   async function joinDebate() {
+    if (!position) {
+      setError(copy.positionRequired);
+      return;
+    }
     setPending(true);
     setError("");
     try {
@@ -49,7 +70,7 @@ export function CommunityDebateInvite({
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ inviteCode }),
+          body: JSON.stringify({ inviteCode, initialPosition: position }),
         },
       );
       if (!response.ok) {
@@ -81,6 +102,32 @@ export function CommunityDebateInvite({
           <h2>{debate.question}</h2>
           {debate.context ? <p className="rich-copy">{debate.context}</p> : null}
         </div>
+        <fieldset className="community-position-prompt">
+          <legend>
+            <span>{copy.positionPromptKicker}</span>
+            <strong>{copy.positionPromptTitle}</strong>
+            <small>{copy.positionPromptBody}</small>
+          </legend>
+          <div>
+            {positionOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                data-tone={option.tone}
+                aria-pressed={position === option.value}
+                onClick={() => {
+                  setPosition(option.value);
+                  setError("");
+                }}
+              >
+                <span aria-hidden="true">
+                  {option.value === "yes" ? "✓" : option.value === "no" ? "×" : "○"}
+                </span>
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </fieldset>
         <p className="community-invite-explainer">{copy.inviteBody}</p>
         {isAuthenticated ? (
           <button
@@ -96,6 +143,13 @@ export function CommunityDebateInvite({
           <Link
             href={`/${locale}/access?next=${encodeURIComponent(nextPath)}`}
             className="landing-primary-cta"
+            aria-disabled={!position}
+            onClick={(event) => {
+              if (!position) {
+                event.preventDefault();
+                setError(copy.positionRequired);
+              }
+            }}
           >
             {copy.signInButton}<span aria-hidden="true">→</span>
           </Link>
@@ -303,6 +357,15 @@ export function CommunityDebateWorkspace({
         </aside>
       </section>
 
+      <CommunityPositionPanel
+        locale={locale}
+        debateId={data.debate.id}
+        initialPosition={data.viewerPosition}
+        initialSummary={data.positionSummary}
+        historyCount={data.viewerPositionHistory.length}
+        isHost={isHost}
+      />
+
       <div className="community-side-tabs" role="tablist" aria-label={communityCopy.mobilePerspectiveTabs}>
         <button
           type="button"
@@ -373,6 +436,133 @@ export function CommunityDebateWorkspace({
         </Link>
       </div>
     </main>
+  );
+}
+
+function CommunityPositionPanel({
+  locale,
+  debateId,
+  initialPosition,
+  initialSummary,
+  historyCount,
+  isHost,
+}: {
+  locale: Locale;
+  debateId: string;
+  initialPosition: CommunityDebatePosition | null;
+  initialSummary: CommunityPositionSummary;
+  historyCount: number;
+  isHost: boolean;
+}) {
+  const copy = getCopy(locale).communityDebate;
+  const router = useRouter();
+  const [position, setPosition] = useState(initialPosition);
+  const [pendingChoice, setPendingChoice] =
+    useState<CommunityPositionChoice | null>(null);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
+  const choices: Array<{ value: CommunityPositionChoice; label: string }> = [
+    { value: "yes", label: copy.positionYes },
+    { value: "no", label: copy.positionNo },
+    { value: "undecided", label: copy.positionUndecided },
+    { value: "skip", label: copy.positionSkip },
+  ];
+  const labelFor = (choice: CommunityPositionChoice | null) =>
+    choice
+      ? choices.find((option) => option.value === choice)?.label
+      : copy.positionNotMeasured;
+  const hasChanged = Boolean(
+    position?.baselineChoice &&
+      position.baselineChoice !== "skip" &&
+      position.currentChoice !== position.baselineChoice,
+  );
+  const impactText = copy.impactMeasure
+    .replace("{changed}", String(initialSummary.changedCount))
+    .replace("{total}", String(initialSummary.measurableCount));
+
+  async function savePosition(choice: CommunityPositionChoice) {
+    if (choice === position?.currentChoice) return;
+    setPendingChoice(choice);
+    setSaved(false);
+    setError("");
+    try {
+      const response = await fetch(
+        `/api/community-debates/${debateId}/position`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ choice }),
+        },
+      );
+      if (!response.ok) throw new Error("POSITION_FAILED");
+      const result = (await response.json()) as {
+        position: CommunityDebatePosition;
+      };
+      setPosition(result.position);
+      setSaved(true);
+      router.refresh();
+    } catch {
+      setError(copy.positionError);
+    } finally {
+      setPendingChoice(null);
+    }
+  }
+
+  return (
+    <section className="community-position-panel">
+      <div className="community-position-self">
+        <div className="community-position-heading">
+          <p className="section-label">{copy.positionKicker}</p>
+          {hasChanged ? <span>{copy.positionChanged}</span> : null}
+        </div>
+        <div className="community-position-journey">
+          <div>
+            <small>{copy.positionBaseline}</small>
+            <strong>{labelFor(position?.baselineChoice ?? null)}</strong>
+          </div>
+          <span aria-hidden="true">→</span>
+          <div>
+            <small>{copy.positionNow}</small>
+            <strong>{labelFor(position?.currentChoice ?? null)}</strong>
+          </div>
+        </div>
+        <div className="community-position-actions">
+          {choices.map((choice) => (
+            <button
+              type="button"
+              key={choice.value}
+              aria-pressed={position?.currentChoice === choice.value}
+              disabled={Boolean(pendingChoice)}
+              onClick={() => savePosition(choice.value)}
+            >
+              {pendingChoice === choice.value ? copy.positionSaving : choice.label}
+            </button>
+          ))}
+        </div>
+        <p className="community-position-note">
+          {saved ? copy.positionSaved : copy.positionPrivacy}
+          {historyCount > 1 ? ` · ${historyCount} ${locale === "fr" ? "étapes" : "steps"}` : ""}
+        </p>
+        {error ? <p className="community-error" role="alert">{error}</p> : null}
+      </div>
+      {isHost ? (
+        <aside className="community-position-impact">
+          <p className="section-label">{copy.impactKicker}</p>
+          {initialSummary.measurableCount ? (
+            <>
+              <strong>
+                {Math.round(
+                  (initialSummary.changedCount / initialSummary.measurableCount) * 100,
+                )}%
+              </strong>
+              <span>{impactText}</span>
+            </>
+          ) : (
+            <span>{copy.impactEmpty}</span>
+          )}
+        </aside>
+      ) : null}
+    </section>
   );
 }
 

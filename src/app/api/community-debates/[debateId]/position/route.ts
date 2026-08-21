@@ -2,13 +2,12 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
-import { acceptCommunityInvite } from "@/lib/repository";
+import { updateCommunityDebatePosition } from "@/lib/repository";
 
 export const runtime = "nodejs";
 
-const inviteSchema = z.object({
-  inviteCode: z.string().min(20).max(80),
-  initialPosition: z.enum(["yes", "no", "undecided", "skip"]),
+const positionSchema = z.object({
+  choice: z.enum(["yes", "no", "undecided", "skip"]),
 });
 
 export async function POST(
@@ -20,32 +19,33 @@ export async function POST(
     return NextResponse.json({ error: "AUTH_REQUIRED" }, { status: 401 });
   }
 
-  const payload = inviteSchema.safeParse(
+  const payload = positionSchema.safeParse(
     await request.json().catch(() => null),
   );
   if (!payload.success) {
-    return NextResponse.json({ error: "INVALID_INVITE" }, { status: 400 });
+    return NextResponse.json({ error: "INVALID_POSITION" }, { status: 400 });
   }
 
   try {
     const { debateId } = await context.params;
-    await acceptCommunityInvite(
+    const result = await updateCommunityDebatePosition(
       session.user.id,
       debateId,
-      payload.data.inviteCode,
-      payload.data.initialPosition,
+      payload.data.choice,
     );
-    return NextResponse.json({ ok: true });
+    return NextResponse.json(result);
   } catch (error) {
     const message = error instanceof Error ? error.message : "UNKNOWN_ERROR";
     const status =
       message === "DEBATE_NOT_FOUND"
         ? 404
-        : ["INVALID_INVITE", "INVALID_POSITION", "ALIAS_REQUIRED"].includes(message)
+        : message === "FORBIDDEN"
           ? 403
-          : 500;
+          : ["INVALID_POSITION", "ALIAS_REQUIRED"].includes(message)
+            ? 400
+            : 500;
     if (status === 500) {
-      console.error("Community debate invitation failed.", error);
+      console.error("Community debate position update failed.", error);
     }
     return NextResponse.json({ error: message }, { status });
   }

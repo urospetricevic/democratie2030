@@ -13,6 +13,7 @@ import {
   getPublicAppUrl,
 } from "@/lib/community-invite-preview";
 import { appEnv } from "@/lib/env";
+import { isCommunityPositionChoice } from "@/lib/community-position";
 import { isLocale } from "@/lib/i18n";
 import {
   getCommunityDebateAccess,
@@ -27,7 +28,7 @@ export async function generateMetadata({
   searchParams,
 }: {
   params: Promise<{ locale: string; debateId: string }>;
-  searchParams: Promise<{ invite?: string }>;
+  searchParams: Promise<{ invite?: string; position?: string }>;
 }): Promise<Metadata> {
   const { locale: rawLocale, debateId } = await params;
   const inviteCode = (await searchParams).invite ?? "";
@@ -96,7 +97,7 @@ export default async function CommunityDebatePage({
   searchParams,
 }: {
   params: Promise<{ locale: string; debateId: string }>;
-  searchParams: Promise<{ invite?: string }>;
+  searchParams: Promise<{ invite?: string; position?: string }>;
 }) {
   const { locale: rawLocale, debateId } = await params;
   if (!isLocale(rawLocale)) {
@@ -104,7 +105,11 @@ export default async function CommunityDebatePage({
   }
 
   const locale = rawLocale as Locale;
-  const inviteCode = (await searchParams).invite ?? "";
+  const query = await searchParams;
+  const inviteCode = query.invite ?? "";
+  const initialPosition = isCommunityPositionChoice(query.position)
+    ? query.position
+    : null;
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id ?? null;
   const access = await getCommunityDebateAccess(
@@ -124,7 +129,10 @@ export default async function CommunityDebatePage({
   if (userId) {
     const profile = await getUserProfile(userId);
     if (!profile) {
-      const nextPath = `/${locale}/community/${debateId}?invite=${encodeURIComponent(inviteCode)}`;
+      const nextUrl = new URL(`https://dbyle.local/${locale}/community/${debateId}`);
+      nextUrl.searchParams.set("invite", inviteCode);
+      if (initialPosition) nextUrl.searchParams.set("position", initialPosition);
+      const nextPath = `${nextUrl.pathname}${nextUrl.search}`;
       redirect(`/${locale}/welcome?next=${encodeURIComponent(nextPath)}`);
     }
   }
@@ -135,6 +143,7 @@ export default async function CommunityDebatePage({
       debate={access.debate}
       inviteCode={inviteCode}
       isAuthenticated={Boolean(userId)}
+      initialPosition={initialPosition}
     />
   );
 }

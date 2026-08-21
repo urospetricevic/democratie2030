@@ -4,6 +4,7 @@ export const DEBATE_SLUG = "quebec-country";
 
 export type Locale = (typeof SUPPORTED_LOCALES)[number];
 export type VoteSide = "yes" | "no";
+export type CommunityPositionChoice = VoteSide | "undecided" | "skip";
 export type LocalizedText = Record<Locale, string>;
 export type AuthProvider = "password" | "google" | "guest";
 
@@ -203,6 +204,38 @@ export interface CommunityDebateTitleChange {
   changedAt: string;
 }
 
+export interface CommunityDebatePosition {
+  id: string;
+  debateId: string;
+  userId: string;
+  alias: string;
+  baselineChoice: CommunityPositionChoice | null;
+  currentChoice: CommunityPositionChoice;
+  baselineAt: string | null;
+  currentAt: string;
+  updatedAt: string;
+}
+
+export interface CommunityPositionChange {
+  id: string;
+  positionId: string;
+  debateId: string;
+  userId: string;
+  alias: string;
+  previousChoice: CommunityPositionChoice | null;
+  nextChoice: CommunityPositionChoice;
+  stage: "baseline" | "update";
+  changedAt: string;
+}
+
+export interface CommunityPositionSummary {
+  responseCount: number;
+  measurableCount: number;
+  changedCount: number;
+  baseline: Record<CommunityPositionChoice, number>;
+  current: Record<CommunityPositionChoice, number>;
+}
+
 export interface ImportedArgumentSource {
   label: string;
   url: string;
@@ -250,6 +283,9 @@ export interface CommunityDebatePageData {
   titleHistory: CommunityDebateTitleChange[];
   conclusion: CommunityDebateConclusion | null;
   conclusionIsStale: boolean;
+  viewerPosition: CommunityDebatePosition | null;
+  viewerPositionHistory: CommunityPositionChange[];
+  positionSummary: CommunityPositionSummary;
   viewerId: string;
 }
 

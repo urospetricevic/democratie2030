@@ -26,6 +26,10 @@ import {
   type GeneratedCommunityConclusion,
 } from "@/lib/community-conclusion";
 import {
+  computeCommunityPositionSummary,
+  isCommunityPositionChoice,
+} from "@/lib/community-position";
+import {
   DEBATE_SLUG,
   type ArgumentComment,
   type ArgumentSource,
@@ -36,9 +40,12 @@ import {
   type CommunityDebateAccess,
   type CommunityDebateConclusion,
   type CommunityDebateListItem,
+  type CommunityDebatePosition,
   type CommunityInvitePreview,
   type CommunityMember,
   type CommunityMembership,
+  type CommunityPositionChange,
+  type CommunityPositionChoice,
   type CommunityDebateTitleChange,
   type Debate,
   type DebateAggregate,
@@ -112,11 +119,23 @@ function communityTitleChangesCollection() {
   return getFirestore().collection("communityDebateTitleChanges");
 }
 
+function communityPositionsCollection() {
+  return getFirestore().collection("communityDebatePositions");
+}
+
+function communityPositionChangesCollection() {
+  return getFirestore().collection("communityDebatePositionChanges");
+}
+
 function argumentCommentsCollection() {
   return getFirestore().collection("argumentComments");
 }
 
 function communityMembershipId(debateId: string, userId: string) {
+  return `${debateId}__${userId}`;
+}
+
+function communityPositionId(debateId: string, userId: string) {
   return `${debateId}__${userId}`;
 }
 
@@ -1013,6 +1032,8 @@ export async function getCommunityDebateAccess(
       membershipsSnap,
       conclusionSnap,
       titleChangesSnap,
+      positionsSnap,
+      viewerPositionChangesSnap,
     ] =
       await Promise.all([
       communityArgumentsCollection().where("debateId", "==", debateId).get(),
@@ -1020,6 +1041,10 @@ export async function getCommunityDebateAccess(
       communityMembershipsCollection().where("debateId", "==", debateId).get(),
       communityConclusionsCollection().doc(debateId).get(),
       communityTitleChangesCollection().where("debateId", "==", debateId).get(),
+      communityPositionsCollection().where("debateId", "==", debateId).get(),
+      communityPositionChangesCollection()
+        .where("positionId", "==", communityPositionId(debateId, userId as string))
+        .get(),
     ]);
 
     const debateArguments = argumentsSnap.docs
@@ -1049,6 +1074,17 @@ export async function getCommunityDebateAccess(
           new Date(b.changedAt).getTime() - new Date(a.changedAt).getTime(),
       );
     const argumentFingerprint = computeArgumentFingerprint(debateArguments);
+    const positions = positionsSnap.docs.map(
+      (doc) => doc.data() as CommunityDebatePosition,
+    );
+    const viewerPosition =
+      positions.find((position) => position.userId === userId) ?? null;
+    const viewerPositionHistory = viewerPositionChangesSnap.docs
+      .map((doc) => doc.data() as CommunityPositionChange)
+      .sort(
+        (a, b) =>
+          new Date(a.changedAt).getTime() - new Date(b.changedAt).getTime(),
+      );
 
     return {
       status: "member",
@@ -1062,6 +1098,9 @@ export async function getCommunityDebateAccess(
         conclusionIsStale: Boolean(
           conclusion && conclusion.argumentFingerprint !== argumentFingerprint,
         ),
+        viewerPosition,
+        viewerPositionHistory,
+        positionSummary: computeCommunityPositionSummary(positions),
         viewerId: userId as string,
       },
     };
@@ -1204,7 +1243,11 @@ export async function acceptCommunityInvite(
   userId: string,
   debateId: string,
   inviteCode: string,
+  initialPosition: CommunityPositionChoice,
 ) {
+  if (!isCommunityPositionChoice(initialPosition)) {
+    throw new Error("INVALID_POSITION");
+  }
   const db = getFirestore();
   const now = new Date().toISOString();
 
@@ -1214,10 +1257,14 @@ export async function acceptCommunityInvite(
     const membershipRef = communityMembershipsCollection().doc(
       communityMembershipId(debateId, userId),
     );
-    const [debateSnap, profileSnap, membershipSnap] = await Promise.all([
+    const positionRef = communityPositionsCollection().doc(
+      communityPositionId(debateId, userId),
+    );
+    const [debateSnap, profileSnap, membershipSnap, positionSnap] = await Promise.all([
       transaction.get(debateRef),
       transaction.get(profileRef),
       transaction.get(membershipRef),
+      transaction.get(positionRef),
     ]);
 
     if (!debateSnap.exists) {
@@ -1243,10 +1290,37 @@ export async function acceptCommunityInvite(
       role: "friend",
       joinedAt: now,
     };
+    const position: CommunityDebatePosition = {
+      id: positionRef.id,
+      debateId,
+      userId,
+      alias: profile.alias,
+      baselineChoice: initialPosition,
+      currentChoice: initialPosition,
+      baselineAt: now,
+      currentAt: now,
+      updatedAt: now,
+    };
+    const positionChangeRef = communityPositionChangesCollection().doc(randomUUID());
+    const positionChange: CommunityPositionChange = {
+      id: positionChangeRef.id,
+      positionId: positionRef.id,
+      debateId,
+      userId,
+      alias: profile.alias,
+      previousChoice: null,
+      nextChoice: initialPosition,
+      stage: "baseline",
+      changedAt: now,
+    };
     const nextMemberCount =
       (debate.memberCount ?? debate.memberIds?.length ?? 1) + 1;
 
     transaction.create(membershipRef, membership);
+    if (!positionSnap.exists) {
+      transaction.create(positionRef, position);
+      transaction.create(positionChangeRef, positionChange);
+    }
     transaction.update(debateRef, {
       memberCount: nextMemberCount,
       updatedAt: now,
@@ -1256,6 +1330,87 @@ export async function acceptCommunityInvite(
       memberCount: nextMemberCount,
       updatedAt: now,
     };
+  });
+}
+
+export async function updateCommunityDebatePosition(
+  userId: string,
+  debateId: string,
+  nextChoice: CommunityPositionChoice,
+) {
+  if (!isCommunityPositionChoice(nextChoice)) {
+    throw new Error("INVALID_POSITION");
+  }
+
+  const db = getFirestore();
+  const now = new Date().toISOString();
+  const debateRef = communityDebatesCollection().doc(debateId);
+  const profileRef = profilesCollection().doc(userId);
+  const membershipRef = communityMembershipsCollection().doc(
+    communityMembershipId(debateId, userId),
+  );
+  const positionRef = communityPositionsCollection().doc(
+    communityPositionId(debateId, userId),
+  );
+
+  return db.runTransaction(async (transaction) => {
+    const [debateSnap, profileSnap, membershipSnap, positionSnap] =
+      await Promise.all([
+        transaction.get(debateRef),
+        transaction.get(profileRef),
+        transaction.get(membershipRef),
+        transaction.get(positionRef),
+      ]);
+
+    if (!debateSnap.exists) throw new Error("DEBATE_NOT_FOUND");
+    if (!profileSnap.exists) throw new Error("ALIAS_REQUIRED");
+    const debate = debateSnap.data() as CommunityDebate;
+    if (!hasCommunityAccess(debate, userId, membershipSnap.exists)) {
+      throw new Error("FORBIDDEN");
+    }
+
+    const profile = profileSnap.data() as UserProfile;
+    const previous = positionSnap.exists
+      ? (positionSnap.data() as CommunityDebatePosition)
+      : null;
+    if (previous?.currentChoice === nextChoice) {
+      return { position: previous, change: null };
+    }
+
+    const position: CommunityDebatePosition = previous
+      ? {
+          ...previous,
+          currentChoice: nextChoice,
+          currentAt: now,
+          updatedAt: now,
+        }
+      : {
+          id: positionRef.id,
+          debateId,
+          userId,
+          alias: profile.alias,
+          baselineChoice: null,
+          currentChoice: nextChoice,
+          baselineAt: null,
+          currentAt: now,
+          updatedAt: now,
+        };
+    const changeRef = communityPositionChangesCollection().doc(randomUUID());
+    const change: CommunityPositionChange = {
+      id: changeRef.id,
+      positionId: positionRef.id,
+      debateId,
+      userId,
+      alias: profile.alias,
+      previousChoice: previous?.currentChoice ?? null,
+      nextChoice,
+      stage: "update",
+      changedAt: now,
+    };
+
+    transaction.set(positionRef, position);
+    transaction.create(changeRef, change);
+    return { position, change };
   });
 }
 
