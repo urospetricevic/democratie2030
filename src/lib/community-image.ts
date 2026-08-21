@@ -5,6 +5,12 @@ import type { CommunityDebate, CommunityDebateImage } from "@/lib/types";
 export const COMMUNITY_IMAGE_MODEL = "imagen-4.0-generate-001";
 const MAX_FIRESTORE_IMAGE_BASE64_BYTES = 900_000;
 
+export function getCommunityFallbackImageFilename(question: string) {
+  return question.toLocaleLowerCase().includes("capitali")
+    ? "dbyle-capitalism-painted.jpg"
+    : "dbyle-painted-fallback.jpg";
+}
+
 interface ImagenResponse {
   predictions?: Array<{
     bytesBase64Encoded?: string;

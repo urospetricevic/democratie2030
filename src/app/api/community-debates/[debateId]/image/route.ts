@@ -3,7 +3,10 @@ import { join } from "node:path";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
-import { generateCommunityDebateImage } from "@/lib/community-image";
+import {
+  generateCommunityDebateImage,
+  getCommunityFallbackImageFilename,
+} from "@/lib/community-image";
 import {
   getCommunityDebateAccess,
   getCommunityDebateImage,
@@ -15,9 +18,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 async function fallbackImage(question: string) {
-  const filename = question.toLocaleLowerCase().includes("capitali")
-    ? "dbyle-capitalism-painted.jpg"
-    : "dbyle-painted-fallback.jpg";
+  const filename = getCommunityFallbackImageFilename(question);
   return readFile(join(process.cwd(), "public", "debate-images", filename));
 }
 
