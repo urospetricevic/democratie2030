@@ -2695,21 +2695,6 @@ textarea {
   line-height: 1.5;
 }
 
-.community-impact-note {
-  margin-top: .65rem;
-  padding-top: .55rem;
-  border-top: 1px solid var(--color-border);
-  color: var(--color-muted);
-  font-size: .48rem;
-  line-height: 1.45;
-}
-
-.community-impact-note strong {
-  margin-right: .4rem;
-  color: var(--color-muted-strong);
-  text-transform: uppercase;
-}
-
 .community-debate-header {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 310px;

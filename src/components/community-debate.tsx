@@ -380,7 +380,6 @@ export function CommunityDebateWorkspace({
         debateId={data.debate.id}
         initialPosition={data.viewerCurrentPosition}
         initialSummary={data.positionSummary}
-        isHost={isHost}
       />
 
       <div className="community-side-tabs" role="tablist" aria-label={communityCopy.mobilePerspectiveTabs}>
@@ -461,13 +460,11 @@ function CommunityPositionPanel({
   debateId,
   initialPosition,
   initialSummary,
-  isHost,
 }: {
   locale: Locale;
   debateId: string;
   initialPosition: CommunityPositionChoice | null;
   initialSummary: CommunityPositionSummary;
-  isHost: boolean;
 }) {
   const copy = getCopy(locale).communityDebate;
   const router = useRouter();
@@ -485,9 +482,6 @@ function CommunityPositionPanel({
   ];
   const currentPositionLabel =
     choices.find((choice) => choice.value === position)?.label ?? "";
-  const impactText = copy.impactMeasure
-    .replace("{changed}", String(initialSummary.changedCount))
-    .replace("{total}", String(initialSummary.measurableCount));
   const yesCount = initialSummary.current.yes;
   const noCount = initialSummary.current.no;
   const undecidedCount = initialSummary.current.undecided;
@@ -613,12 +607,6 @@ function CommunityPositionPanel({
         ) : (
           <p className="community-stance-empty">{copy.stanceEmpty}</p>
         )}
-        {isHost ? (
-          <p className="community-impact-note">
-            <strong>{copy.impactKicker}</strong>
-            {initialSummary.measurableCount ? impactText : copy.impactEmpty}
-          </p>
-        ) : null}
       </aside>
     </section>
   );
