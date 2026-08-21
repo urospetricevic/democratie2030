@@ -247,22 +247,24 @@ export function CommunityDebateWorkspace({
                 <span>{communityCopy.titleHistory} · {titleHistory.length}</span>
                 <i aria-hidden="true">⌄</i>
               </summary>
-              <p>{communityCopy.titleHistoryHelp}</p>
-              <ol>
-                {titleHistory.map((change) => (
-                  <li key={change.id}>
-                    <div>
-                      <strong>@{change.actorAlias}</strong>
-                      <time dateTime={change.changedAt}>
-                        {formatDateTime(locale, change.changedAt)}
-                      </time>
-                    </div>
-                    <del>{change.previousQuestion}</del>
-                    <span aria-hidden="true">→</span>
-                    <ins>{change.nextQuestion}</ins>
-                  </li>
-                ))}
-              </ol>
+              <div className="community-title-history-panel">
+                <p>{communityCopy.titleHistoryHelp}</p>
+                <ol>
+                  {titleHistory.map((change) => (
+                    <li key={change.id}>
+                      <div>
+                        <strong>@{change.actorAlias}</strong>
+                        <time dateTime={change.changedAt}>
+                          {formatDateTime(locale, change.changedAt)}
+                        </time>
+                      </div>
+                      <del>{change.previousQuestion}</del>
+                      <span aria-hidden="true">→</span>
+                      <ins>{change.nextQuestion}</ins>
+                    </li>
+                  ))}
+                </ol>
+              </div>
             </details>
           ) : null}
         </div>
