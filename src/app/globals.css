@@ -2530,11 +2530,49 @@ textarea {
   gap: 1rem;
 }
 
+.community-position-change {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-accent);
+  font-size: .54rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
 .community-position-actions {
   display: flex;
   flex-wrap: wrap;
   gap: .4rem;
   margin-top: .65rem;
+}
+
+.community-position-current {
+  display: inline-flex;
+  min-height: 2rem;
+  align-items: center;
+  gap: .45rem;
+  margin-top: .65rem;
+  padding: .38rem .65rem;
+  border: 1px solid rgba(10, 75, 216, .22);
+  border-radius: 999px;
+  background: #eaf1ff;
+  color: var(--color-accent);
+}
+
+.community-position-current > span {
+  display: grid;
+  width: 1rem;
+  height: 1rem;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: white;
+  font-size: .5rem;
+}
+
+.community-position-current strong {
+  font-size: .61rem;
 }
 
 .community-position-actions button {
@@ -2553,6 +2591,10 @@ textarea {
   border-color: rgba(10, 75, 216, .3);
   background: #eaf1ff;
   color: var(--color-accent);
+}
+
+.community-position-actions button:disabled {
+  opacity: 1;
 }
 
 .community-position-note {

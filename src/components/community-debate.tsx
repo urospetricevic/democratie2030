@@ -474,6 +474,7 @@ function CommunityPositionPanel({
   const [position, setPosition] = useState(initialPosition);
   const [pendingChoice, setPendingChoice] =
     useState<CommunityPositionChoice | null>(null);
+  const [isChanging, setIsChanging] = useState(!initialPosition);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
   const choices: Array<{ value: CommunityPositionChoice; label: string }> = [
@@ -482,6 +483,8 @@ function CommunityPositionPanel({
     { value: "undecided", label: copy.positionUndecided },
     { value: "skip", label: copy.positionSkip },
   ];
+  const currentPositionLabel =
+    choices.find((choice) => choice.value === position)?.label ?? "";
   const impactText = copy.impactMeasure
     .replace("{changed}", String(initialSummary.changedCount))
     .replace("{total}", String(initialSummary.measurableCount));
@@ -495,7 +498,11 @@ function CommunityPositionPanel({
   const noPercent = decidedCount ? 100 - yesPercent : 0;
 
   async function savePosition(choice: CommunityPositionChoice) {
-    if (choice === position) return;
+    if (position && !isChanging) return;
+    if (choice === position) {
+      setIsChanging(false);
+      return;
+    }
     setPendingChoice(choice);
     setSaved(false);
     setError("");
@@ -514,6 +521,7 @@ function CommunityPositionPanel({
       };
       setPosition(result.currentChoice);
       setSaved(true);
+      setIsChanging(false);
       router.refresh();
     } catch {
       setError(copy.positionError);
@@ -527,22 +535,47 @@ function CommunityPositionPanel({
       <div className="community-position-self">
         <div className="community-position-heading">
           <p className="section-label">{copy.positionKicker}</p>
-        </div>
-        <div className="community-position-actions">
-          {choices.map((choice) => (
+          {position ? (
             <button
               type="button"
-              key={choice.value}
-              aria-pressed={position === choice.value}
+              className="community-position-change"
               disabled={Boolean(pendingChoice)}
-              onClick={() => savePosition(choice.value)}
+              onClick={() => {
+                setSaved(false);
+                setError("");
+                setIsChanging((current) => !current);
+              }}
             >
-              {pendingChoice === choice.value ? copy.positionSaving : choice.label}
+              {isChanging ? copy.positionCancel : copy.positionChange}
             </button>
-          ))}
+          ) : null}
         </div>
+        {position && !isChanging ? (
+          <div className="community-position-current">
+            <span aria-hidden="true">✓</span>
+            <strong>{currentPositionLabel}</strong>
+          </div>
+        ) : (
+          <div className="community-position-actions">
+            {choices.map((choice) => (
+              <button
+                type="button"
+                key={choice.value}
+                aria-pressed={position === choice.value}
+                disabled={Boolean(pendingChoice)}
+                onClick={() => savePosition(choice.value)}
+              >
+                {pendingChoice === choice.value ? copy.positionSaving : choice.label}
+              </button>
+            ))}
+          </div>
+        )}
         <p className="community-position-note">
-          {saved ? copy.positionSaved : copy.positionPrivacy}
+          {saved
+            ? copy.positionSaved
+            : position && !isChanging
+              ? copy.positionLocked
+              : copy.positionPrivacy}
         </p>
         {error ? <p className="community-error" role="alert">{error}</p> : null}
       </div>
