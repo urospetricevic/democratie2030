@@ -19,6 +19,7 @@ export const appEnv = {
     process.env.PASSWORD_RESET_TEST_MODE === "true",
   seedSecret: process.env.SEED_SECRET ?? "",
   adminSeedEnabled: (process.env.ADMIN_SEED_ENABLED ?? "true") !== "false",
+  vertexImageLocation: process.env.VERTEX_IMAGE_LOCATION ?? "us-central1",
 };
 
 export function isPasswordResetEmailConfigured() {

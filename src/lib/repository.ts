@@ -39,6 +39,7 @@ import {
   type CommunityDebate,
   type CommunityDebateAccess,
   type CommunityDebateConclusion,
+  type CommunityDebateImage,
   type CommunityDebateListItem,
   type CommunityDebatePosition,
   type CommunityInvitePreview,
@@ -113,6 +114,10 @@ function communityMembershipsCollection() {
 
 function communityConclusionsCollection() {
   return getFirestore().collection("communityDebateConclusions");
+}
+
+function communityImagesCollection() {
+  return getFirestore().collection("communityDebateImages");
 }
 
 function communityTitleChangesCollection() {
@@ -1003,6 +1008,20 @@ export async function createCommunityDebate(
     } satisfies CommunityMembership);
     return debate;
   });
+}
+
+export async function saveCommunityDebateImage(image: CommunityDebateImage) {
+  if (!isFirestoreConfigured()) {
+    throw new Error("COMMUNITY_DEBATES_UNAVAILABLE");
+  }
+  await communityImagesCollection().doc(image.debateId).set(image);
+  return image;
+}
+
+export async function getCommunityDebateImage(debateId: string) {
+  if (!isFirestoreConfigured()) return null;
+  const snapshot = await communityImagesCollection().doc(debateId).get();
+  return snapshot.exists ? (snapshot.data() as CommunityDebateImage) : null;
 }
 
 export async function getCommunityDebateAccess(

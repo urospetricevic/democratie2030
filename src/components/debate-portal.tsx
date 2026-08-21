@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { formatDateTime, getCopy } from "@/lib/i18n";
@@ -97,6 +98,14 @@ export function DebatePortal({
             <section className="portal-debate-grid">
               {filteredDebates.map((debate) => (
                 <article className="portal-debate-card" key={debate.id}>
+                  <Image
+                    className="portal-debate-image"
+                    src={`/api/community-debates/${debate.id}/image?v=${encodeURIComponent(debate.updatedAt)}`}
+                    alt=""
+                    width={800}
+                    height={450}
+                    unoptimized
+                  />
                   <div className="portal-card-topline">
                     <span>{debate.category}</span>
                     <strong data-role={debate.role}>

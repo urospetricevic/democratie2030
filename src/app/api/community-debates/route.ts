@@ -2,7 +2,11 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { authOptions } from "@/lib/auth";
-import { createCommunityDebate } from "@/lib/repository";
+import { generateCommunityDebateImage } from "@/lib/community-image";
+import {
+  createCommunityDebate,
+  saveCommunityDebateImage,
+} from "@/lib/repository";
 
 export const runtime = "nodejs";
 
@@ -31,6 +35,12 @@ export async function POST(request: Request) {
       session.user.id,
       payload.data,
     );
+    try {
+      const image = await generateCommunityDebateImage(debate);
+      await saveCommunityDebateImage(image);
+    } catch (imageError) {
+      console.error("Community debate image generation failed.", imageError);
+    }
     return NextResponse.json({ id: debate.id }, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "UNKNOWN_ERROR";

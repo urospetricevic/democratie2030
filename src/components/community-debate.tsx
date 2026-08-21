@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -97,6 +98,15 @@ export function CommunityDebateInvite({
         </p>
         <h1>{copy.inviteTitle}</h1>
         <div className="community-invite-question">
+          <Image
+            className="community-debate-image"
+            src={`/api/community-debates/${debate.id}/image?invite=${encodeURIComponent(inviteCode)}`}
+            alt=""
+            width={1600}
+            height={900}
+            priority
+            unoptimized
+          />
           <span>{debate.category}</span>
           <h2>{debate.question}</h2>
           {debate.context ? <p className="rich-copy">{debate.context}</p> : null}
@@ -241,6 +251,15 @@ export function CommunityDebateWorkspace({
     <main className="community-workspace">
       <section className="community-debate-header">
         <div className="community-debate-heading">
+          <Image
+            className="community-debate-image community-debate-hero-image"
+            src={`/api/community-debates/${data.debate.id}/image?v=${encodeURIComponent(data.debate.updatedAt)}`}
+            alt=""
+            width={1600}
+            height={900}
+            priority
+            unoptimized
+          />
           <div className="community-debate-topline">
             <p className="section-label">{communityCopy.workspaceKicker}</p>
             <span className="community-private-badge">

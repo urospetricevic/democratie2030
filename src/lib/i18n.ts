@@ -117,7 +117,7 @@ const copy = {
     ],
     communityDebate: {
       createButton: "Créer le débat privé",
-      creating: "Création…",
+      creating: "Création de l’espace et de son image…",
       signInToCreate: "Se connecter pour créer",
       createError: "Impossible de créer ce débat pour le moment.",
       questionTooShort: "La question doit contenir au moins 12 caractères.",
@@ -485,7 +485,7 @@ const copy = {
     ],
     communityDebate: {
       createButton: "Create private debate",
-      creating: "Creating…",
+      creating: "Creating the space and its image…",
       signInToCreate: "Sign in to create",
       createError: "This debate could not be created right now.",
       questionTooShort: "The question must be at least 12 characters long.",

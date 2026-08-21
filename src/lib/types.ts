@@ -149,6 +149,18 @@ export interface CommunityDebate {
   updatedAt: string;
 }
 
+export interface CommunityDebateImage {
+  id: string;
+  debateId: string;
+  mimeType: "image/jpeg" | "image/png";
+  bytesBase64Encoded: string;
+  prompt: string;
+  model: string;
+  generatedBy: "vertex";
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ArgumentSource {
   id: string;
   label: string;
