@@ -33,7 +33,11 @@ export async function POST(
       debateId,
       payload.data.choice,
     );
-    return NextResponse.json(result);
+    return NextResponse.json({
+      currentChoice: result.position.currentChoice,
+      updatedAt: result.position.updatedAt,
+      changed: Boolean(result.change),
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "UNKNOWN_ERROR";
     const status =

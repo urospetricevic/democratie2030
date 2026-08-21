@@ -15,7 +15,6 @@ import type {
   CommunityArgument,
   CommunityDebateConclusion,
   CommunityDebatePageData,
-  CommunityDebatePosition,
   CommunityDebateTitleChange,
   CommunityInvitePreview,
   CommunityPositionChoice,
@@ -360,9 +359,8 @@ export function CommunityDebateWorkspace({
       <CommunityPositionPanel
         locale={locale}
         debateId={data.debate.id}
-        initialPosition={data.viewerPosition}
+        initialPosition={data.viewerCurrentPosition}
         initialSummary={data.positionSummary}
-        historyCount={data.viewerPositionHistory.length}
         isHost={isHost}
       />
 
@@ -444,14 +442,12 @@ function CommunityPositionPanel({
   debateId,
   initialPosition,
   initialSummary,
-  historyCount,
   isHost,
 }: {
   locale: Locale;
   debateId: string;
-  initialPosition: CommunityDebatePosition | null;
+  initialPosition: CommunityPositionChoice | null;
   initialSummary: CommunityPositionSummary;
-  historyCount: number;
   isHost: boolean;
 }) {
   const copy = getCopy(locale).communityDebate;
@@ -467,21 +463,12 @@ function CommunityPositionPanel({
     { value: "undecided", label: copy.positionUndecided },
     { value: "skip", label: copy.positionSkip },
   ];
-  const labelFor = (choice: CommunityPositionChoice | null) =>
-    choice
-      ? choices.find((option) => option.value === choice)?.label
-      : copy.positionNotMeasured;
-  const hasChanged = Boolean(
-    position?.baselineChoice &&
-      position.baselineChoice !== "skip" &&
-      position.currentChoice !== position.baselineChoice,
-  );
   const impactText = copy.impactMeasure
     .replace("{changed}", String(initialSummary.changedCount))
     .replace("{total}", String(initialSummary.measurableCount));
 
   async function savePosition(choice: CommunityPositionChoice) {
-    if (choice === position?.currentChoice) return;
+    if (choice === position) return;
     setPendingChoice(choice);
     setSaved(false);
     setError("");
@@ -496,9 +483,9 @@ function CommunityPositionPanel({
       );
       if (!response.ok) throw new Error("POSITION_FAILED");
       const result = (await response.json()) as {
-        position: CommunityDebatePosition;
+        currentChoice: CommunityPositionChoice;
       };
-      setPosition(result.position);
+      setPosition(result.currentChoice);
       setSaved(true);
       router.refresh();
     } catch {
@@ -513,25 +500,13 @@ function CommunityPositionPanel({
       <div className="community-position-self">
         <div className="community-position-heading">
           <p className="section-label">{copy.positionKicker}</p>
-          {hasChanged ? <span>{copy.positionChanged}</span> : null}
-        </div>
-        <div className="community-position-journey">
-          <div>
-            <small>{copy.positionBaseline}</small>
-            <strong>{labelFor(position?.baselineChoice ?? null)}</strong>
-          </div>
-          <span aria-hidden="true">→</span>
-          <div>
-            <small>{copy.positionNow}</small>
-            <strong>{labelFor(position?.currentChoice ?? null)}</strong>
-          </div>
         </div>
         <div className="community-position-actions">
           {choices.map((choice) => (
             <button
               type="button"
               key={choice.value}
-              aria-pressed={position?.currentChoice === choice.value}
+              aria-pressed={position === choice.value}
               disabled={Boolean(pendingChoice)}
               onClick={() => savePosition(choice.value)}
             >
@@ -541,7 +516,6 @@ function CommunityPositionPanel({
         </div>
         <p className="community-position-note">
           {saved ? copy.positionSaved : copy.positionPrivacy}
-          {historyCount > 1 ? ` · ${historyCount} ${locale === "fr" ? "étapes" : "steps"}` : ""}
         </p>
         {error ? <p className="community-error" role="alert">{error}</p> : null}
       </div>

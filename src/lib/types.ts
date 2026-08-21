@@ -283,8 +283,7 @@ export interface CommunityDebatePageData {
   titleHistory: CommunityDebateTitleChange[];
   conclusion: CommunityDebateConclusion | null;
   conclusionIsStale: boolean;
-  viewerPosition: CommunityDebatePosition | null;
-  viewerPositionHistory: CommunityPositionChange[];
+  viewerCurrentPosition: CommunityPositionChoice | null;
   positionSummary: CommunityPositionSummary;
   viewerId: string;
 }

@@ -1033,7 +1033,6 @@ export async function getCommunityDebateAccess(
       conclusionSnap,
       titleChangesSnap,
       positionsSnap,
-      viewerPositionChangesSnap,
     ] =
       await Promise.all([
       communityArgumentsCollection().where("debateId", "==", debateId).get(),
@@ -1042,9 +1041,6 @@ export async function getCommunityDebateAccess(
       communityConclusionsCollection().doc(debateId).get(),
       communityTitleChangesCollection().where("debateId", "==", debateId).get(),
       communityPositionsCollection().where("debateId", "==", debateId).get(),
-      communityPositionChangesCollection()
-        .where("positionId", "==", communityPositionId(debateId, userId as string))
-        .get(),
     ]);
 
     const debateArguments = argumentsSnap.docs
@@ -1079,12 +1075,6 @@ export async function getCommunityDebateAccess(
     );
     const viewerPosition =
       positions.find((position) => position.userId === userId) ?? null;
-    const viewerPositionHistory = viewerPositionChangesSnap.docs
-      .map((doc) => doc.data() as CommunityPositionChange)
-      .sort(
-        (a, b) =>
-          new Date(a.changedAt).getTime() - new Date(b.changedAt).getTime(),
-      );
 
     return {
       status: "member",
@@ -1098,8 +1088,7 @@ export async function getCommunityDebateAccess(
         conclusionIsStale: Boolean(
           conclusion && conclusion.argumentFingerprint !== argumentFingerprint,
         ),
-        viewerPosition,
-        viewerPositionHistory,
+        viewerCurrentPosition: viewerPosition?.currentChoice ?? null,
         positionSummary: computeCommunityPositionSummary(positions),
         viewerId: userId as string,
       },

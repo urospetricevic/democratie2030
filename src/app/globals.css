@@ -2530,51 +2530,11 @@ textarea {
   gap: 1rem;
 }
 
-.community-position-heading > span {
-  padding: .25rem .45rem;
-  border-radius: 999px;
-  background: #eaf1ff;
-  color: var(--color-accent);
-  font-size: .52rem;
-  font-weight: 800;
-}
-
-.community-position-journey {
-  display: flex;
-  align-items: center;
-  gap: .7rem;
-  margin-top: .65rem;
-}
-
-.community-position-journey > div {
-  display: flex;
-  min-width: 7.5rem;
-  flex-direction: column;
-  gap: .16rem;
-}
-
-.community-position-journey small {
-  color: var(--color-muted);
-  font-size: .52rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.community-position-journey strong {
-  color: var(--color-ink);
-  font-size: .78rem;
-}
-
-.community-position-journey > span {
-  color: var(--color-muted);
-  font-size: .7rem;
-}
-
 .community-position-actions {
   display: flex;
   flex-wrap: wrap;
   gap: .4rem;
-  margin-top: .8rem;
+  margin-top: .65rem;
 }
 
 .community-position-actions button {
@@ -4987,11 +4947,6 @@ textarea {
 
   .community-position-self {
     padding: .9rem;
-  }
-
-  .community-position-journey > div {
-    min-width: 0;
-    flex: 1;
   }
 
   .community-position-actions {
