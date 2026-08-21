@@ -742,82 +742,90 @@ function CommunityArgumentCard({
 
   return (
     <article className="community-argument-card">
-      <div className="community-argument-meta">
-        <span>@{argument.authorAlias}</span>
-        <time dateTime={argument.createdAt}>
-          {formatDateTime(locale, argument.createdAt)}
-        </time>
-      </div>
-      <h3>{argument.title}</h3>
-
-      <details className="community-argument-explanation">
-        <summary>
-          <span className="when-closed">{copy.showExplanation}</span>
-          <span className="when-open">{copy.hideExplanation}</span>
+      <details className="community-argument-disclosure">
+        <summary className="community-argument-row">
+          <strong>{argument.title}</strong>
+          <span className="community-argument-row-stats">
+            <span title={copy.sources}>
+              <i aria-hidden="true">↗</i>{argument.sources.length}
+            </span>
+            <span title={copy.comments}>
+              <i aria-hidden="true">◌</i>{comments.length}
+            </span>
+          </span>
           <i aria-hidden="true">⌄</i>
         </summary>
-        <p className="rich-copy">{argument.body}</p>
-      </details>
 
-      <details className="community-sources">
-        <summary className="community-card-section-heading">
-          <strong>{copy.sources}</strong>
-          <span>{argument.sources.length}</span>
-          <i aria-hidden="true">⌄</i>
-        </summary>
-        <div className="community-sources-content">
-          {argument.sources.length ? (
-            <ul>
-              {argument.sources.map((source) => (
-                <li key={source.id}>
-                  <span aria-hidden="true">↗</span>
-                  <a href={source.url} target="_blank" rel="noreferrer">
-                    {source.label}
-                  </a>
-                  <small>{copy.by} @{source.addedByAlias}</small>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>{copy.noSources}</p>
-          )}
-          <SourceForm
-            locale={locale}
-            debateId={debateId}
-            argumentId={argument.id}
-          />
-        </div>
-      </details>
+        <div className="community-argument-expanded">
+          <div className="community-argument-meta">
+            <span>@{argument.authorAlias}</span>
+            <time dateTime={argument.createdAt}>
+              {formatDateTime(locale, argument.createdAt)}
+            </time>
+          </div>
+          <p className="rich-copy community-argument-body">{argument.body}</p>
 
-      <details className="community-comments">
-        <summary className="community-card-section-heading">
-          <strong>{copy.comments}</strong>
-          <span>{comments.length}</span>
-          <i aria-hidden="true">⌄</i>
-        </summary>
-        <div className="community-comments-content">
-          {comments.length ? (
-            <ol>
-              {comments.map((comment) => (
-                <li key={comment.id}>
-                  <div>
-                    <strong>@{comment.authorAlias}</strong>
-                    <time dateTime={comment.createdAt}>
-                      {formatDateTime(locale, comment.createdAt)}
-                    </time>
-                  </div>
-                  <p>{comment.body}</p>
-                </li>
-              ))}
-            </ol>
-          ) : (
-            <p>{copy.noComments}</p>
-          )}
-          <CommentForm
-            locale={locale}
-            debateId={debateId}
-            argumentId={argument.id}
-          />
+          <details className="community-sources">
+            <summary className="community-card-section-heading">
+              <strong>{copy.sources}</strong>
+              <span>{argument.sources.length}</span>
+              <i aria-hidden="true">⌄</i>
+            </summary>
+            <div className="community-sources-content">
+              {argument.sources.length ? (
+                <ul>
+                  {argument.sources.map((source) => (
+                    <li key={source.id}>
+                      <span aria-hidden="true">↗</span>
+                      <a href={source.url} target="_blank" rel="noreferrer">
+                        {source.label}
+                      </a>
+                      <small>{copy.by} @{source.addedByAlias}</small>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p>{copy.noSources}</p>
+              )}
+              <SourceForm
+                locale={locale}
+                debateId={debateId}
+                argumentId={argument.id}
+              />
+            </div>
+          </details>
+
+          <details className="community-comments">
+            <summary className="community-card-section-heading">
+              <strong>{copy.comments}</strong>
+              <span>{comments.length}</span>
+              <i aria-hidden="true">⌄</i>
+            </summary>
+            <div className="community-comments-content">
+              {comments.length ? (
+                <ol>
+                  {comments.map((comment) => (
+                    <li key={comment.id}>
+                      <div>
+                        <strong>@{comment.authorAlias}</strong>
+                        <time dateTime={comment.createdAt}>
+                          {formatDateTime(locale, comment.createdAt)}
+                        </time>
+                      </div>
+                      <p>{comment.body}</p>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p>{copy.noComments}</p>
+              )}
+              <CommentForm
+                locale={locale}
+                debateId={debateId}
+                argumentId={argument.id}
+              />
+            </div>
+          </details>
         </div>
       </details>
     </article>
