@@ -485,6 +485,14 @@ function CommunityPositionPanel({
   const impactText = copy.impactMeasure
     .replace("{changed}", String(initialSummary.changedCount))
     .replace("{total}", String(initialSummary.measurableCount));
+  const yesCount = initialSummary.current.yes;
+  const noCount = initialSummary.current.no;
+  const undecidedCount = initialSummary.current.undecided;
+  const decidedCount = yesCount + noCount;
+  const yesPercent = decidedCount
+    ? Math.round((yesCount / decidedCount) * 100)
+    : 0;
+  const noPercent = decidedCount ? 100 - yesPercent : 0;
 
   async function savePosition(choice: CommunityPositionChoice) {
     if (choice === position) return;
@@ -538,23 +546,47 @@ function CommunityPositionPanel({
         </p>
         {error ? <p className="community-error" role="alert">{error}</p> : null}
       </div>
-      {isHost ? (
-        <aside className="community-position-impact">
-          <p className="section-label">{copy.impactKicker}</p>
-          {initialSummary.measurableCount ? (
-            <>
-              <strong>
-                {Math.round(
-                  (initialSummary.changedCount / initialSummary.measurableCount) * 100,
-                )}%
-              </strong>
-              <span>{impactText}</span>
-            </>
-          ) : (
-            <span>{copy.impactEmpty}</span>
-          )}
-        </aside>
-      ) : null}
+      <aside className="community-position-impact">
+        <div className="community-stance-heading">
+          <p className="section-label">{copy.stanceKicker}</p>
+          <span>
+            {copy.stanceResponses.replace("{count}", String(decidedCount))}
+          </span>
+        </div>
+        {decidedCount ? (
+          <>
+            <div className="community-stance-values">
+              <strong data-side="yes">{yesPercent}% <span>{copy.positionYes}</span></strong>
+              <strong data-side="no">{noPercent}% <span>{copy.positionNo}</span></strong>
+            </div>
+            <div
+              className="community-stance-bar"
+              role="img"
+              aria-label={copy.stanceAria
+                .replace("{yes}", String(yesPercent))
+                .replace("{no}", String(noPercent))}
+            >
+              <span data-side="yes" style={{ width: `${yesPercent}%` }} />
+              <span data-side="no" style={{ width: `${noPercent}%` }} />
+            </div>
+            <div className="community-stance-counts">
+              <span><i data-side="yes" />{yesCount}</span>
+              <span><i data-side="no" />{noCount}</span>
+              {undecidedCount ? (
+                <span>{copy.stanceUndecided.replace("{count}", String(undecidedCount))}</span>
+              ) : null}
+            </div>
+          </>
+        ) : (
+          <p className="community-stance-empty">{copy.stanceEmpty}</p>
+        )}
+        {isHost ? (
+          <p className="community-impact-note">
+            <strong>{copy.impactKicker}</strong>
+            {initialSummary.measurableCount ? impactText : copy.impactEmpty}
+          </p>
+        ) : null}
+      </aside>
     </section>
   );
 }
