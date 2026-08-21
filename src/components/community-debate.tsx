@@ -169,7 +169,7 @@ export function CommunityDebateWorkspace({
             {data.viewerId === data.debate.ownerId ? (
               <button type="button" onClick={copyInvite}>
                 <span aria-hidden="true">↗</span>
-                {copied ? communityCopy.copied : communityCopy.copyLink}
+                {copied ? communityCopy.copied : communityCopy.inviteButton}
               </button>
             ) : null}
           </div>
