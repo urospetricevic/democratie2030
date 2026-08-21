@@ -162,9 +162,17 @@ export function CommunityDebateWorkspace({
         </div>
 
         <aside className="community-participants">
-          <p className="section-label">
-            {locale === "fr" ? "Dans cet espace" : "In this space"}
-          </p>
+          <div className="community-participants-heading">
+            <p className="section-label">
+              {locale === "fr" ? "Dans cet espace" : "In this space"}
+            </p>
+            {data.viewerId === data.debate.ownerId ? (
+              <button type="button" onClick={copyInvite}>
+                <span aria-hidden="true">↗</span>
+                {copied ? communityCopy.copied : communityCopy.copyLink}
+              </button>
+            ) : null}
+          </div>
           <div className="community-person">
             <span>{data.debate.ownerAlias.slice(0, 1).toUpperCase()}</span>
             <p><strong>@{data.debate.ownerAlias}</strong>{communityCopy.hostLabel}</p>
@@ -186,36 +194,6 @@ export function CommunityDebateWorkspace({
           )}
         </aside>
       </section>
-
-      {data.viewerId === data.debate.ownerId ? (
-        <>
-          <section className="community-share-panel">
-            <div>
-              <span className="community-share-icon" aria-hidden="true">↗</span>
-              <div>
-                <h2>{communityCopy.shareTitle}</h2>
-                <p>{communityCopy.shareBody}</p>
-              </div>
-            </div>
-            <div className="community-share-control">
-              <input value={sharePath} readOnly aria-label={communityCopy.copyLink} />
-              <button type="button" onClick={copyInvite}>
-                {copied ? communityCopy.copied : communityCopy.copyLink}
-              </button>
-            </div>
-          </section>
-          <ArgumentImportPanel locale={locale} debateId={data.debate.id} />
-        </>
-      ) : null}
-
-      <AiConclusionPanel
-        locale={locale}
-        debateId={data.debate.id}
-        initialConclusion={data.conclusion}
-        initialIsStale={data.conclusionIsStale}
-        isHost={data.viewerId === data.debate.ownerId}
-        argumentCount={data.arguments.length}
-      />
 
       <div className="community-side-tabs" role="tablist" aria-label={communityCopy.mobilePerspectiveTabs}>
         <button
@@ -260,6 +238,26 @@ export function CommunityDebateWorkspace({
           isActive={activeSide === "no"}
         />
       </section>
+
+      {data.viewerId === data.debate.ownerId ? (
+        <details className="community-host-tools">
+          <summary>
+            <span aria-hidden="true">✦</span>
+            <strong>{communityCopy.importKicker}</strong>
+            <i aria-hidden="true">⌄</i>
+          </summary>
+          <ArgumentImportPanel locale={locale} debateId={data.debate.id} />
+        </details>
+      ) : null}
+
+      <AiConclusionPanel
+        locale={locale}
+        debateId={data.debate.id}
+        initialConclusion={data.conclusion}
+        initialIsStale={data.conclusionIsStale}
+        isHost={data.viewerId === data.debate.ownerId}
+        argumentCount={data.arguments.length}
+      />
 
       <div className="community-workspace-footer">
         <Link href={`/${locale}/create`}>
