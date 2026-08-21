@@ -375,6 +375,11 @@ export function CommunityDebateWorkspace({
         </aside>
       </section>
 
+      <div className="community-mobile-debate-context" aria-hidden="true">
+        <span>{data.debate.category}</span>
+        <strong>{question}</strong>
+      </div>
+
       <CommunityPositionPanel
         locale={locale}
         debateId={data.debate.id}

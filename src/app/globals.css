@@ -4237,7 +4237,7 @@ textarea {
 
   .community-side-tabs {
     position: sticky;
-    top: 4.35rem;
+    top: 8.15rem;
     z-index: 25;
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -5098,6 +5098,10 @@ textarea {
   grid-template-columns: minmax(0, 1fr);
 }
 
+.community-mobile-debate-context {
+  display: none;
+}
+
 .community-debate-image {
   display: block;
   width: 100%;
@@ -5129,6 +5133,40 @@ textarea {
 }
 
 @media (max-width: 620px) {
+  .community-mobile-debate-context {
+    position: sticky;
+    top: 4.5rem;
+    z-index: 30;
+    display: grid;
+    min-height: 3.65rem;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: .65rem;
+    align-items: center;
+    margin-top: .55rem;
+    padding: .65rem 1rem;
+    border-top: 1px solid rgba(15, 23, 42, .08);
+    border-bottom: 1px solid rgba(15, 23, 42, .12);
+    background: rgba(255, 255, 255, .96);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, .08);
+    backdrop-filter: blur(16px);
+  }
+
+  .community-mobile-debate-context span {
+    color: var(--color-accent);
+    font-size: .5rem;
+    font-weight: 850;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+  }
+
+  .community-mobile-debate-context strong {
+    min-width: 0;
+    color: var(--color-ink);
+    font-size: .78rem;
+    line-height: 1.25;
+    letter-spacing: -.015em;
+  }
+
   .community-debate-hero-image {
     height: 8.5rem;
     margin-bottom: 1.4rem;
