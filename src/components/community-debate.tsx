@@ -15,6 +15,7 @@ import type {
   CommunityArgument,
   CommunityDebateConclusion,
   CommunityDebatePageData,
+  CommunityDebateTitleChange,
   CommunityInvitePreview,
   Locale,
   VoteSide,
@@ -116,8 +117,16 @@ export function CommunityDebateWorkspace({
 }: CommunityDebateWorkspaceProps) {
   const copy = getCopy(locale);
   const communityCopy = copy.communityDebate;
+  const router = useRouter();
+  const isHost = data.viewerId === data.debate.ownerId;
   const [copied, setCopied] = useState(false);
   const [activeSide, setActiveSide] = useState<VoteSide>("yes");
+  const [question, setQuestion] = useState(data.debate.question);
+  const [questionDraft, setQuestionDraft] = useState(data.debate.question);
+  const [editingQuestion, setEditingQuestion] = useState(false);
+  const [questionPending, setQuestionPending] = useState(false);
+  const [questionError, setQuestionError] = useState("");
+  const [titleHistory, setTitleHistory] = useState(data.titleHistory);
   const sharePath = `/${locale}/community/${data.debate.id}?invite=${encodeURIComponent(data.debate.inviteCode)}`;
   const commentsByArgument = useMemo(() => {
     const grouped = new Map<string, ArgumentComment[]>();
@@ -137,6 +146,37 @@ export function CommunityDebateWorkspace({
     window.setTimeout(() => setCopied(false), 2200);
   }
 
+  async function updateQuestion(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setQuestionPending(true);
+    setQuestionError("");
+    try {
+      const response = await fetch(`/api/community-debates/${data.debate.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: questionDraft }),
+      });
+      if (!response.ok) {
+        throw new Error("QUESTION_UPDATE_FAILED");
+      }
+      const result = (await response.json()) as {
+        debate: { question: string };
+        change: CommunityDebateTitleChange | null;
+      };
+      setQuestion(result.debate.question);
+      setQuestionDraft(result.debate.question);
+      if (result.change) {
+        setTitleHistory((current) => [result.change as CommunityDebateTitleChange, ...current]);
+      }
+      setEditingQuestion(false);
+      router.refresh();
+    } catch {
+      setQuestionError(communityCopy.titleEditError);
+    } finally {
+      setQuestionPending(false);
+    }
+  }
+
   const yesArguments = data.arguments.filter(
     (argument) => argument.side === "yes",
   );
@@ -154,10 +194,76 @@ export function CommunityDebateWorkspace({
               <span aria-hidden="true">●</span>{communityCopy.privateBadge}
             </span>
           </div>
-          <p className="community-category">{data.debate.category}</p>
-          <h1>{data.debate.question}</h1>
+          <div className="community-title-toolbar">
+            <p className="community-category">{data.debate.category}</p>
+            {isHost && !editingQuestion ? (
+              <button type="button" onClick={() => setEditingQuestion(true)}>
+                <span aria-hidden="true">✎</span>{communityCopy.editTitle}
+              </button>
+            ) : null}
+          </div>
+          {editingQuestion ? (
+            <form className="community-title-editor" onSubmit={updateQuestion}>
+              <label htmlFor={`debate-question-${data.debate.id}`}>
+                {communityCopy.titleLabel}
+              </label>
+              <textarea
+                id={`debate-question-${data.debate.id}`}
+                value={questionDraft}
+                onChange={(event) => setQuestionDraft(event.target.value)}
+                minLength={12}
+                maxLength={180}
+                rows={2}
+                required
+                autoFocus
+              />
+              <div>
+                <button type="submit" disabled={questionPending}>
+                  {questionPending ? communityCopy.savingTitle : communityCopy.saveTitle}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setQuestionDraft(question);
+                    setQuestionError("");
+                    setEditingQuestion(false);
+                  }}
+                  disabled={questionPending}
+                >
+                  {communityCopy.cancelTitleEdit}
+                </button>
+              </div>
+              {questionError ? <p role="alert">{questionError}</p> : null}
+            </form>
+          ) : (
+            <h1>{question}</h1>
+          )}
           {data.debate.context ? (
             <p className="rich-copy community-context">{data.debate.context}</p>
+          ) : null}
+          {titleHistory.length ? (
+            <details className="community-title-history">
+              <summary>
+                <span>{communityCopy.titleHistory} · {titleHistory.length}</span>
+                <i aria-hidden="true">⌄</i>
+              </summary>
+              <p>{communityCopy.titleHistoryHelp}</p>
+              <ol>
+                {titleHistory.map((change) => (
+                  <li key={change.id}>
+                    <div>
+                      <strong>@{change.actorAlias}</strong>
+                      <time dateTime={change.changedAt}>
+                        {formatDateTime(locale, change.changedAt)}
+                      </time>
+                    </div>
+                    <del>{change.previousQuestion}</del>
+                    <span aria-hidden="true">→</span>
+                    <ins>{change.nextQuestion}</ins>
+                  </li>
+                ))}
+              </ol>
+            </details>
           ) : null}
         </div>
 
@@ -166,7 +272,7 @@ export function CommunityDebateWorkspace({
             <p className="section-label">
               {locale === "fr" ? "Dans cet espace" : "In this space"}
             </p>
-            {data.viewerId === data.debate.ownerId ? (
+            {isHost ? (
               <button type="button" onClick={copyInvite}>
                 <span aria-hidden="true">↗</span>
                 {copied ? communityCopy.copied : communityCopy.inviteButton}
@@ -239,7 +345,7 @@ export function CommunityDebateWorkspace({
         />
       </section>
 
-      {data.viewerId === data.debate.ownerId ? (
+      {isHost ? (
         <details className="community-host-tools">
           <summary>
             <span aria-hidden="true">✦</span>
@@ -255,7 +361,7 @@ export function CommunityDebateWorkspace({
         debateId={data.debate.id}
         initialConclusion={data.conclusion}
         initialIsStale={data.conclusionIsStale}
-        isHost={data.viewerId === data.debate.ownerId}
+        isHost={isHost}
         argumentCount={data.arguments.length}
       />
 

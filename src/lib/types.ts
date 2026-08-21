@@ -193,6 +193,16 @@ export interface CommunityDebateConclusion {
   updatedAt: string;
 }
 
+export interface CommunityDebateTitleChange {
+  id: string;
+  debateId: string;
+  actorId: string;
+  actorAlias: string;
+  previousQuestion: string;
+  nextQuestion: string;
+  changedAt: string;
+}
+
 export interface ImportedArgumentSource {
   label: string;
   url: string;
@@ -237,6 +247,7 @@ export interface CommunityDebatePageData {
   members: CommunityMember[];
   arguments: CommunityArgument[];
   comments: ArgumentComment[];
+  titleHistory: CommunityDebateTitleChange[];
   conclusion: CommunityDebateConclusion | null;
   conclusionIsStale: boolean;
   viewerId: string;

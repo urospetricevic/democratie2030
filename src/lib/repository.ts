@@ -39,6 +39,7 @@ import {
   type CommunityInvitePreview,
   type CommunityMember,
   type CommunityMembership,
+  type CommunityDebateTitleChange,
   type Debate,
   type DebateAggregate,
   type DebatePageData,
@@ -105,6 +106,10 @@ function communityMembershipsCollection() {
 
 function communityConclusionsCollection() {
   return getFirestore().collection("communityDebateConclusions");
+}
+
+function communityTitleChangesCollection() {
+  return getFirestore().collection("communityDebateTitleChanges");
 }
 
 function argumentCommentsCollection() {
@@ -1002,12 +1007,19 @@ export async function getCommunityDebateAccess(
         .get()
     : null;
   if (hasCommunityAccess(debate, userId, Boolean(membershipSnap?.exists))) {
-    const [argumentsSnap, commentsSnap, membershipsSnap, conclusionSnap] =
+    const [
+      argumentsSnap,
+      commentsSnap,
+      membershipsSnap,
+      conclusionSnap,
+      titleChangesSnap,
+    ] =
       await Promise.all([
       communityArgumentsCollection().where("debateId", "==", debateId).get(),
       argumentCommentsCollection().where("debateId", "==", debateId).get(),
       communityMembershipsCollection().where("debateId", "==", debateId).get(),
       communityConclusionsCollection().doc(debateId).get(),
+      communityTitleChangesCollection().where("debateId", "==", debateId).get(),
     ]);
 
     const debateArguments = argumentsSnap.docs
@@ -1030,6 +1042,12 @@ export async function getCommunityDebateAccess(
     const conclusion = conclusionSnap.exists
       ? (conclusionSnap.data() as CommunityDebateConclusion)
       : null;
+    const titleHistory = titleChangesSnap.docs
+      .map((doc) => doc.data() as CommunityDebateTitleChange)
+      .sort(
+        (a, b) =>
+          new Date(b.changedAt).getTime() - new Date(a.changedAt).getTime(),
+      );
     const argumentFingerprint = computeArgumentFingerprint(debateArguments);
 
     return {
@@ -1039,6 +1057,7 @@ export async function getCommunityDebateAccess(
         members: mergeCommunityMembers(debate, memberships),
         arguments: debateArguments,
         comments,
+        titleHistory,
         conclusion,
         conclusionIsStale: Boolean(
           conclusion && conclusion.argumentFingerprint !== argumentFingerprint,
@@ -1056,6 +1075,65 @@ export async function getCommunityDebateAccess(
   }
 
   return { status: "forbidden" };
+}
+
+export async function updateCommunityDebateQuestion(
+  userId: string,
+  debateId: string,
+  input: { question: string },
+) {
+  if (!isFirestoreConfigured()) {
+    throw new Error("COMMUNITY_DEBATES_UNAVAILABLE");
+  }
+
+  const question = normalizeCommunityQuestion(input.question);
+  if (question.length < 12) {
+    throw new Error("QUESTION_TOO_SHORT");
+  }
+
+  const db = getFirestore();
+  const debateRef = communityDebatesCollection().doc(debateId);
+  const changeRef = communityTitleChangesCollection().doc(randomUUID());
+
+  return db.runTransaction(async (transaction) => {
+    const debateSnap = await transaction.get(debateRef);
+    if (!debateSnap.exists) {
+      throw new Error("DEBATE_NOT_FOUND");
+    }
+
+    const debate = debateSnap.data() as CommunityDebate;
+    if (debate.ownerId !== userId) {
+      throw new Error("FORBIDDEN");
+    }
+
+    if (debate.question === question) {
+      return { debate, change: null };
+    }
+
+    const changedAt = new Date().toISOString();
+    const change: CommunityDebateTitleChange = {
+      id: changeRef.id,
+      debateId,
+      actorId: userId,
+      actorAlias: debate.ownerAlias,
+      previousQuestion: debate.question,
+      nextQuestion: question,
+      changedAt,
+    };
+    const updatedDebate: CommunityDebate = {
+      ...debate,
+      question,
+      updatedAt: changedAt,
+    };
+
+    transaction.update(debateRef, {
+      question,
+      updatedAt: changedAt,
+    });
+    transaction.create(changeRef, change);
+
+    return { debate: updatedDebate, change };
+  });
 }
 
 export async function getCommunityDebatesForUser(
