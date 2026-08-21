@@ -790,5 +790,6 @@ export function formatDateTime(locale: Locale, value: string) {
   return new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
     timeStyle: "short",
+    timeZone: "America/Toronto",
   }).format(new Date(value));
 }
