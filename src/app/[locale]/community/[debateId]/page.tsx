@@ -1,10 +1,18 @@
 import { getServerSession } from "next-auth";
+import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import {
   CommunityDebateInvite,
   CommunityDebateWorkspace,
 } from "@/components/community-debate";
 import { authOptions } from "@/lib/auth";
+import {
+  buildCommunityInviteImageUrl,
+  buildCommunityInviteUrl,
+  getCommunityInvitePreviewCopy,
+  getPublicAppUrl,
+} from "@/lib/community-invite-preview";
+import { appEnv } from "@/lib/env";
 import { isLocale } from "@/lib/i18n";
 import {
   getCommunityDebateAccess,
@@ -13,6 +21,75 @@ import {
 import type { Locale } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string; debateId: string }>;
+  searchParams: Promise<{ invite?: string }>;
+}): Promise<Metadata> {
+  const { locale: rawLocale, debateId } = await params;
+  const inviteCode = (await searchParams).invite ?? "";
+
+  if (!isLocale(rawLocale) || !inviteCode) {
+    return {
+      title: "Private debate | DBYLE",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const locale = rawLocale as Locale;
+  const access = await getCommunityDebateAccess(debateId, null, inviteCode);
+  if (access.status !== "invite") {
+    return {
+      title: "Private debate | DBYLE",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const copy = getCommunityInvitePreviewCopy(locale, access.debate);
+  const appUrl = getPublicAppUrl(appEnv.appUrl);
+  const invitationUrl = buildCommunityInviteUrl(
+    appUrl,
+    locale,
+    debateId,
+    inviteCode,
+  );
+  const imageUrl = buildCommunityInviteImageUrl(
+    appUrl,
+    locale,
+    debateId,
+    inviteCode,
+  );
+
+  return {
+    title: copy.title,
+    description: copy.description,
+    robots: { index: false, follow: false },
+    openGraph: {
+      type: "website",
+      siteName: "DBYLE",
+      title: copy.title,
+      description: copy.description,
+      url: invitationUrl,
+      images: [
+        {
+          url: imageUrl,
+          width: 1200,
+          height: 630,
+          alt: access.debate.question,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: copy.title,
+      description: copy.description,
+      images: [imageUrl],
+    },
+  };
+}
 
 export default async function CommunityDebatePage({
   params,
