@@ -100,7 +100,7 @@ export function CommunityDebateInvite({
         <div className="community-invite-question">
           <Image
             className="community-debate-image"
-            src={`/api/community-debates/${debate.id}/image?invite=${encodeURIComponent(inviteCode)}`}
+            src={`/api/community-debates/${debate.id}/image?invite=${encodeURIComponent(inviteCode)}&style=paint-3`}
             alt=""
             width={1600}
             height={900}
@@ -253,7 +253,7 @@ export function CommunityDebateWorkspace({
         <div className="community-debate-heading">
           <Image
             className="community-debate-image community-debate-hero-image"
-            src={`/api/community-debates/${data.debate.id}/image?v=${encodeURIComponent(data.debate.updatedAt)}`}
+            src={`/api/community-debates/${data.debate.id}/image?v=${encodeURIComponent(data.debate.updatedAt)}&style=paint-3`}
             alt=""
             width={1600}
             height={900}

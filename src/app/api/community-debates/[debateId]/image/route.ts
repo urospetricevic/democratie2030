@@ -14,8 +14,11 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-async function fallbackImage() {
-  return readFile(join(process.cwd(), "public", "debate-images", "dbyle-abstract-fallback.jpg"));
+async function fallbackImage(question: string) {
+  const filename = question.toLocaleLowerCase().includes("capitali")
+    ? "dbyle-capitalism-painted.jpg"
+    : "dbyle-painted-fallback.jpg";
+  return readFile(join(process.cwd(), "public", "debate-images", filename));
 }
 
 export async function GET(
@@ -35,9 +38,10 @@ export async function GET(
   }
 
   const image = await getCommunityDebateImage(debateId);
+  const debate = access.status === "member" ? access.data.debate : access.debate;
   const body = image
     ? Buffer.from(image.bytesBase64Encoded, "base64")
-    : await fallbackImage();
+    : await fallbackImage(debate.question);
   return new NextResponse(body, {
     headers: {
       "Content-Type": image?.mimeType ?? "image/jpeg",

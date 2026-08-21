@@ -100,7 +100,7 @@ export function DebatePortal({
                 <article className="portal-debate-card" key={debate.id}>
                   <Image
                     className="portal-debate-image"
-                    src={`/api/community-debates/${debate.id}/image?v=${encodeURIComponent(debate.updatedAt)}`}
+                    src={`/api/community-debates/${debate.id}/image?v=${encodeURIComponent(debate.updatedAt)}&style=paint-3`}
                     alt=""
                     width={800}
                     height={450}

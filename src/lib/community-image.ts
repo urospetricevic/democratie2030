@@ -18,18 +18,18 @@ export function buildCommunityImagePrompt(
 ) {
   const context = debate.context.trim() || "No additional context was supplied.";
   return `
-Create a sophisticated abstract editorial cover for a private civic debate.
+Create a sparse, human-made abstract painting for a private civic debate.
 
 Debate question: ${debate.question}
 Debate category: ${debate.category}
 Debate context: ${context}
 Language of the debate: ${debate.locale === "fr" ? "French" : "English"}
 
-Interpret the tension between the competing perspectives through abstract geometry, layered translucent forms, rhythm, balance, friction, and negative space. Do not take a side and do not illustrate a conclusion.
+First derive one simple, recognizable visual metaphor from the specific debate question and context. The subject must feel unique to this debate rather than like a reusable image of two opposing sides. Express that metaphor using only three to five large painted shapes and generous negative space. Keep the connection subtle but legible; do not take a side and do not illustrate a conclusion literally.
 
-Visual direction: premium editorial generative art; geometric-organic abstraction; subtle depth and fine grain; modern civic-tech identity; intelligent, balanced, contemplative; deep midnight navy, DBYLE cobalt blue, warm off-white, and restrained signal-red accents. Wide 16:9 landscape with crop-safe edges.
+Visual direction: restrained mid-century editorial abstraction painted by hand; matte gouache and thin oil paint on coarse linen; broad visible brushstrokes; imperfect edges; quiet pigment variation; flat physical painting photographed straight-on. Deep navy, muted DBYLE cobalt, warm chalk and linen, with at most one small desaturated vermilion accent. Wide 16:9 landscape with crop-safe edges.
 
-Do not include words, letters, logos, flags, faces, people, party imagery, watermarks, literal charts, or UI elements. Avoid a generic stock 3D-render look.
+Keep it calm, simple, asymmetrical and understated. Use subject-related objects only as reduced painterly silhouettes, never as detailed illustrations. Do not include fine lines, dots, grids, bars, waveforms, architectural structures, particles, concentric technical patterns, digital glow, gradients, sharp computer geometry, words, letters, logos, flags, faces, people, party imagery, watermarks, literal charts, or UI elements. It must look like a sparse physical painting, not generative digital art.
   `.trim();
 }
 
