@@ -296,7 +296,6 @@ const copy = {
       "8 a 72 caracteres, avec au moins une lettre et un chiffre.",
     accessAutoLoginFallback:
       "Compte cree. Connectez-vous pour continuer.",
-    accessRecommended: "Recommande",
     accessBack: "Retour a l'accueil",
     forgotPasswordLink: "Mot de passe oublié ?",
     forgotPasswordKicker: "Récupération du compte",
@@ -665,7 +664,6 @@ const copy = {
       "8 to 72 characters, with at least one letter and one number.",
     accessAutoLoginFallback:
       "Account created. Sign in to continue.",
-    accessRecommended: "Recommended",
     accessBack: "Back to home",
     forgotPasswordLink: "Forgot password?",
     forgotPasswordKicker: "Account recovery",

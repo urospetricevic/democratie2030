@@ -97,10 +97,7 @@ export function AccountAccessForm({
         data-active={accessMode === "register"}
         className="account-access-card access-register-card rounded-[2rem] border border-[var(--color-border-strong)] bg-[linear-gradient(145deg,rgba(15,23,42,0.98),rgba(15,118,110,0.94))] p-6 text-white shadow-[0_32px_90px_rgba(15,23,42,0.28)]"
       >
-        <div className="flex items-center justify-between gap-3">
-          <span className="rounded-full bg-white/12 px-3 py-1 text-xs font-bold uppercase tracking-[0.22em] text-[var(--color-highlight)]">
-            {dictionary.accessRecommended}
-          </span>
+        <div className="flex items-center justify-end gap-3">
           <span className="text-xs font-semibold uppercase tracking-[0.18em] text-white/65">
             Email
           </span>
