@@ -4793,3 +4793,94 @@ textarea {
     grid-column: 1;
   }
 }
+
+/* Keep the debate roster present without letting it compete with the title. */
+.community-debate-header {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.community-participants {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 1rem;
+  overflow-x: auto;
+  padding: .8rem clamp(1.5rem, 5vw, 5rem);
+  border-top: 1px solid var(--color-border);
+  border-left: 0;
+  background: #fbfcff;
+  scrollbar-width: thin;
+}
+
+.community-participants-heading {
+  flex: 0 0 auto;
+  gap: .65rem;
+}
+
+.community-participants-heading .section-label {
+  white-space: nowrap;
+}
+
+.community-person {
+  display: grid;
+  flex: 0 0 auto;
+  grid-template-columns: 2rem auto;
+  gap: .55rem;
+  align-items: center;
+  margin-top: 0;
+  padding: 0 0 0 1rem;
+  border-top: 0;
+  border-left: 1px solid var(--color-border);
+}
+
+.community-person > span {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 8px;
+  font-size: .68rem;
+}
+
+.community-person p {
+  display: flex;
+  flex-direction: row;
+  gap: .4rem;
+  align-items: baseline;
+  white-space: nowrap;
+}
+
+.community-person strong {
+  font-size: .67rem;
+}
+
+.community-person-empty > span {
+  font-size: .8rem;
+}
+
+@media (max-width: 620px) {
+  .community-debate-heading {
+    padding-bottom: 2.2rem;
+  }
+
+  .community-participants {
+    display: flex;
+    grid-template-columns: none;
+    gap: .7rem;
+    padding: .72rem 1.25rem;
+  }
+
+  .community-participants-heading {
+    align-items: center;
+  }
+
+  .community-participants-heading > button {
+    margin-top: 0;
+  }
+
+  .community-person {
+    padding-left: .7rem;
+  }
+
+  .community-person-empty {
+    display: none;
+  }
+}
